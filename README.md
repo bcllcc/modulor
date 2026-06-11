@@ -185,3 +185,7 @@ AGENT_GUIDE.md   给 Agent 看的完整使用指南
 ## License
 
 MIT
+
+---
+
+`mcp-name: io.github.bcllcc/modulor`
