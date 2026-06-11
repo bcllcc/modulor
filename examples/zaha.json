@@ -1,0 +1,51 @@
+[
+  {"op": "doc_new", "units": "m", "name": "fluid_campus"},
+  {"op": "add_material", "name": "shell", "color": "#ebe8e2", "roughness": 0.45},
+  {"op": "add_material", "name": "glass", "color": "#9db8cc", "roughness": 0.15, "metallic": 0.5},
+  {"op": "add_material", "name": "ground", "color": "#cfcdc8", "roughness": 0.9},
+
+  {"op": "add_box", "at": [-60, -55, -0.6], "size": [125, 110, 0.6],
+   "material": "ground", "tag": "plaza"},
+
+  {"op": "add_spline", "closed": true, "tag": "t0",
+   "points": [[16, 0], [0, 11], [-16, 0], [0, -11]]},
+  {"op": "add_spline", "closed": true, "tag": "t1",
+   "points": [[11, 6], [-1, 13], [-13, 2], [1, -7]]},
+  {"op": "add_spline", "closed": true, "tag": "t2",
+   "points": [[7, 3], [1, 9], [-7, 4], [0, -2]]},
+  {"op": "loft", "tag": "tower", "material": "glass", "samples": 96,
+   "divisions": 12, "keep": false,
+   "sections": [{"select": {"tags": ["t0"]}, "z": 0},
+                {"select": {"tags": ["t1"]}, "z": 42},
+                {"select": {"tags": ["t2"]}, "z": 82}]},
+  {"op": "deform", "select": {"tags": ["tower"]}, "kind": "twist",
+   "amount": 40, "refine": 0},
+
+  {"op": "add_spline", "closed": true, "tag": "rib",
+   "points": [[3.5, 0], [0, 1.1], [-3.5, 0], [0, -1.1]]},
+  {"op": "sweep", "profile": {"tags": ["rib"]}, "tag": "canopy",
+   "material": "shell", "scale_end": 0.45, "samples": 64,
+   "path": [[-34, -28, 7], [-8, -36, 13], [22, -30, 9], [42, -16, 15]],
+   "keep": false},
+
+  {"op": "add_wall", "smooth": true, "thickness": 0.45, "height": 4.2,
+   "material": "shell", "tag": "landwall",
+   "path": [[-42, 14], [-18, 30], [8, 23], [32, 33]]},
+
+  {"op": "add_implicit", "tag": "pavilion", "material": "shell",
+   "expr": "smax(smax(7.5 - length(x+32, y+8, z-3.5), 5.5 - length(x+21, y-1, z-2.8), 4.5), 4.5 - length(x+27, y+16, z-2.2), 4)",
+   "bounds": {"min": [-45, -12, 0], "max": [-10, 26, 12]},
+   "edge_length": 0.45},
+
+  {"op": "measure", "kind": "volume", "select": {"tags": ["tower"]}},
+  {"op": "validate"},
+
+  {"op": "render", "path": "examples/out/zaha_iso.png", "mode": "shaded",
+   "camera": {"eye": [120, -150, 95], "target": [-5, 0, 26]},
+   "width": 1500, "height": 1050},
+  {"op": "render", "path": "examples/out/zaha_front.png", "mode": "shaded",
+   "camera": "front", "select": {"types": ["solid", "wall"]},
+   "width": 1500, "height": 900},
+  {"op": "export", "path": "examples/out/zaha.glb"},
+  {"op": "doc_info"}
+]

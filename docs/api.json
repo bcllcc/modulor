@@ -1,0 +1,1672 @@
+{
+ "contract": "modulor-ops/1",
+ "error_codes": {
+  "bad_command": "the command/batch is not shaped like {'op': ..., ...}",
+  "bad_expr": "a parameter expression failed to parse or evaluate",
+  "bad_format": "unsupported or malformed file format",
+  "bad_json": "input text is not valid JSON",
+  "bad_param": "a parameter has the wrong type, value or range",
+  "bad_selector": "the selector object/string cannot be interpreted",
+  "bad_target": "selection resolved to the wrong count or kind of entity",
+  "bad_type": "this entity type does not support the operation",
+  "degenerate": "the geometry would be invalid (zero/negative size, self-defeating input)",
+  "empty_result": "the operation produced no geometry (e.g. non-overlapping booleans)",
+  "empty_selection": "the selector matched no entities",
+  "file_not_found": "the input file does not exist",
+  "internal": "unexpected internal failure (please report)",
+  "missing_param": "a required parameter was not given",
+  "no_path": "the document has no file path yet (save it first)",
+  "not_closed": "an open curve was used where a closed area is needed",
+  "not_found": "no entity/material/level/snapshot with that name",
+  "over_budget": "the request exceeds a resource budget (resolution, counts); the hint says which knob to turn",
+  "recipe_error": "no recipe stored, recipe recursion, or a recipe command failed (message says which)",
+  "unknown_op": "no op with that name (hint suggests close matches)",
+  "unknown_param": "the op has no such parameter (hint suggests close matches)",
+  "unknown_tool": "MCP: no tool with that name"
+ },
+ "op_count": 71,
+ "ops": {
+  "add_arc": {
+   "effects": "doc",
+   "params": {
+    "center": {
+     "required": true,
+     "type": "point2"
+    },
+    "end_angle": {
+     "required": true,
+     "type": "number"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "radius": {
+     "required": true,
+     "type": "number"
+    },
+    "start_angle": {
+     "required": true,
+     "type": "number"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id]}"
+  },
+  "add_box": {
+   "effects": "doc",
+   "params": {
+    "anchor": {
+     "default": "corner",
+     "enum": [
+      "corner",
+      "center"
+     ],
+     "type": "string"
+    },
+    "at": {
+     "default": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "type": "point3"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "size": {
+     "required": true,
+     "type": "point3"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id], volume, bbox}"
+  },
+  "add_circle": {
+   "effects": "doc",
+   "params": {
+    "center": {
+     "required": true,
+     "type": "point2"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "radius": {
+     "required": true,
+     "type": "number"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id]}"
+  },
+  "add_cylinder": {
+   "effects": "doc",
+   "params": {
+    "at": {
+     "default": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "type": "point3"
+    },
+    "height": {
+     "required": true,
+     "type": "number"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "radius": {
+     "required": true,
+     "type": "number"
+    },
+    "radius_top": {
+     "type": "number"
+    },
+    "segments": {
+     "default": 0,
+     "type": "integer"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id], volume, bbox}"
+  },
+  "add_dim": {
+   "effects": "doc",
+   "params": {
+    "layer": {
+     "type": "string"
+    },
+    "offset": {
+     "type": "number"
+    },
+    "p1": {
+     "required": true,
+     "type": "point2"
+    },
+    "p2": {
+     "required": true,
+     "type": "point2"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "text": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id], value}"
+  },
+  "add_dim_angular": {
+   "effects": "doc",
+   "params": {
+    "center": {
+     "required": true,
+     "type": "point2"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "p1": {
+     "required": true,
+     "type": "point2"
+    },
+    "p2": {
+     "required": true,
+     "type": "point2"
+    },
+    "radius": {
+     "type": "number"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "text": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id], value}"
+  },
+  "add_dim_radial": {
+   "effects": "doc",
+   "params": {
+    "direction": {
+     "default": 45.0,
+     "type": "number"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "of": {
+     "required": true,
+     "type": "select"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "text": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id], value}"
+  },
+  "add_facade": {
+   "effects": "doc",
+   "params": {
+    "cols": {
+     "type": "integer"
+    },
+    "depth": {
+     "type": "number"
+    },
+    "end": {
+     "required": true,
+     "type": "point2"
+    },
+    "glass_material": {
+     "type": "string"
+    },
+    "height": {
+     "required": true,
+     "type": "number"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "mullion": {
+     "type": "number"
+    },
+    "mullion_material": {
+     "type": "string"
+    },
+    "rows": {
+     "type": "integer"
+    },
+    "spacing": {
+     "type": "number"
+    },
+    "start": {
+     "required": true,
+     "type": "point2"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "z": {
+     "default": 0.0,
+     "type": "number"
+    }
+   },
+   "returns": "{created: [mullions, glass], cols, rows, panel}"
+  },
+  "add_grid": {
+   "effects": "doc",
+   "params": {
+    "layer": {
+     "type": "string"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "x": {
+     "required": true,
+     "type": "object"
+    },
+    "x_labels": {
+     "type": "array"
+    },
+    "y": {
+     "required": true,
+     "type": "object"
+    },
+    "y_labels": {
+     "type": "array"
+    }
+   },
+   "returns": "{created: [id], x, y}"
+  },
+  "add_implicit": {
+   "effects": "doc",
+   "params": {
+    "bounds": {
+     "required": true,
+     "type": "object"
+    },
+    "edge_length": {
+     "type": "number"
+    },
+    "expr": {
+     "required": true,
+     "type": "string"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id], volume, bbox}"
+  },
+  "add_layer": {
+   "effects": "doc",
+   "params": {
+    "color": {
+     "type": "string"
+    },
+    "line_width": {
+     "type": "number"
+    },
+    "name": {
+     "required": true,
+     "type": "string"
+    },
+    "visible": {
+     "type": "boolean"
+    }
+   },
+   "returns": "{layer, color, visible, line_width}"
+  },
+  "add_level": {
+   "effects": "doc",
+   "params": {
+    "elevation": {
+     "required": true,
+     "type": "number"
+    },
+    "height": {
+     "type": "number"
+    },
+    "name": {
+     "required": true,
+     "type": "string"
+    }
+   },
+   "returns": "{levels}"
+  },
+  "add_line": {
+   "effects": "doc",
+   "params": {
+    "end": {
+     "required": true,
+     "type": "point2"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "start": {
+     "required": true,
+     "type": "point2"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id]}"
+  },
+  "add_material": {
+   "effects": "doc",
+   "params": {
+    "color": {
+     "required": true,
+     "type": "string"
+    },
+    "metallic": {
+     "default": 0.0,
+     "type": "number"
+    },
+    "name": {
+     "required": true,
+     "type": "string"
+    },
+    "roughness": {
+     "default": 0.8,
+     "type": "number"
+    }
+   },
+   "returns": "{material, color, metallic, roughness}"
+  },
+  "add_opening": {
+   "effects": "doc",
+   "params": {
+    "along": {
+     "required": true,
+     "type": "number"
+    },
+    "head": {
+     "type": "number"
+    },
+    "sill": {
+     "type": "number"
+    },
+    "type": {
+     "default": "door",
+     "enum": [
+      "door",
+      "window"
+     ],
+     "type": "string"
+    },
+    "wall": {
+     "required": true,
+     "type": "select"
+    },
+    "width": {
+     "required": true,
+     "type": "number"
+    }
+   },
+   "returns": "{modified: [wall id], openings}"
+  },
+  "add_polyline": {
+   "effects": "doc",
+   "params": {
+    "closed": {
+     "default": false,
+     "type": "boolean"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "points": {
+     "required": true,
+     "type": "points"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id]}"
+  },
+  "add_rect": {
+   "effects": "doc",
+   "params": {
+    "anchor": {
+     "default": "corner",
+     "enum": [
+      "corner",
+      "center"
+     ],
+     "type": "string"
+    },
+    "at": {
+     "required": true,
+     "type": "point2"
+    },
+    "height": {
+     "required": true,
+     "type": "number"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "rotation": {
+     "default": 0.0,
+     "type": "number"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "width": {
+     "required": true,
+     "type": "number"
+    }
+   },
+   "returns": "{created: [id]}"
+  },
+  "add_roof": {
+   "effects": "doc",
+   "params": {
+    "direction": {
+     "default": 0.0,
+     "type": "number"
+    },
+    "footprint": {
+     "required": true,
+     "type": "select"
+    },
+    "kind": {
+     "default": "gable",
+     "enum": [
+      "flat",
+      "shed",
+      "gable"
+     ],
+     "type": "string"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "overhang": {
+     "default": 0.0,
+     "type": "number"
+    },
+    "pitch": {
+     "default": 30.0,
+     "type": "number"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "thickness": {
+     "type": "number"
+    },
+    "z": {
+     "default": 0.0,
+     "type": "number"
+    }
+   },
+   "returns": "{created: [id], ridge_height, volume, bbox}"
+  },
+  "add_room": {
+   "effects": "doc",
+   "params": {
+    "boundary": {
+     "type": "select"
+    },
+    "kind": {
+     "default": "room",
+     "enum": [
+      "room",
+      "zone",
+      "site"
+     ],
+     "type": "string"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "level": {
+     "type": "string"
+    },
+    "name": {
+     "required": true,
+     "type": "string"
+    },
+    "points": {
+     "type": "points"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id], area}"
+  },
+  "add_sphere": {
+   "effects": "doc",
+   "params": {
+    "center": {
+     "required": true,
+     "type": "point3"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "radius": {
+     "required": true,
+     "type": "number"
+    },
+    "segments": {
+     "default": 0,
+     "type": "integer"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id], volume, bbox}"
+  },
+  "add_spline": {
+   "effects": "doc",
+   "params": {
+    "closed": {
+     "default": false,
+     "type": "boolean"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "points": {
+     "required": true,
+     "type": "points"
+    },
+    "samples": {
+     "default": 12,
+     "type": "integer"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id], length}"
+  },
+  "add_stair": {
+   "effects": "doc",
+   "params": {
+    "at": {
+     "required": true,
+     "type": "point2"
+    },
+    "direction": {
+     "default": 0.0,
+     "type": "number"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "rise": {
+     "required": true,
+     "type": "number"
+    },
+    "riser_max": {
+     "type": "number"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "tread": {
+     "type": "number"
+    },
+    "width": {
+     "type": "number"
+    },
+    "z": {
+     "default": 0.0,
+     "type": "number"
+    }
+   },
+   "returns": "{created: [id], risers, riser, tread, run}"
+  },
+  "add_surface": {
+   "effects": "doc",
+   "params": {
+    "bounds": {
+     "required": true,
+     "type": "object"
+    },
+    "expr": {
+     "required": true,
+     "type": "string"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "samples": {
+     "default": 48,
+     "type": "integer"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "thickness": {
+     "required": true,
+     "type": "number"
+    }
+   },
+   "returns": "{created: [id], z_range, volume, bbox}"
+  },
+  "add_text": {
+   "effects": "doc",
+   "params": {
+    "at": {
+     "required": true,
+     "type": "point2"
+    },
+    "height": {
+     "type": "number"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "rotation": {
+     "default": 0.0,
+     "type": "number"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "text": {
+     "required": true,
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id]}"
+  },
+  "add_wall": {
+   "effects": "doc",
+   "params": {
+    "height": {
+     "type": "number"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "path": {
+     "required": true,
+     "type": "points"
+    },
+    "smooth": {
+     "default": false,
+     "type": "boolean"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "thickness": {
+     "required": true,
+     "type": "number"
+    }
+   },
+   "returns": "{created: [id], length}"
+  },
+  "array": {
+   "effects": "doc",
+   "params": {
+    "angle": {
+     "default": 360.0,
+     "type": "number"
+    },
+    "center": {
+     "default": [
+      0.0,
+      0.0
+     ],
+     "type": "point2"
+    },
+    "count": {
+     "type": "integer"
+    },
+    "dx": {
+     "default": 0.0,
+     "type": "number"
+    },
+    "dy": {
+     "default": 0.0,
+     "type": "number"
+    },
+    "kind": {
+     "enum": [
+      "grid",
+      "polar"
+     ],
+     "required": true,
+     "type": "string"
+    },
+    "nx": {
+     "default": 1,
+     "type": "integer"
+    },
+    "ny": {
+     "default": 1,
+     "type": "integer"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    }
+   },
+   "returns": "{created: [ids]}"
+  },
+  "boolean_2d": {
+   "effects": "doc",
+   "params": {
+    "a": {
+     "required": true,
+     "type": "select"
+    },
+    "b": {
+     "type": "select"
+    },
+    "keep": {
+     "default": false,
+     "type": "boolean"
+    },
+    "kind": {
+     "enum": [
+      "union",
+      "difference",
+      "intersect",
+      "xor"
+     ],
+     "required": true,
+     "type": "string"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id], area}"
+  },
+  "boolean_3d": {
+   "effects": "doc",
+   "params": {
+    "a": {
+     "required": true,
+     "type": "select"
+    },
+    "b": {
+     "type": "select"
+    },
+    "keep": {
+     "default": false,
+     "type": "boolean"
+    },
+    "kind": {
+     "enum": [
+      "union",
+      "difference",
+      "intersect"
+     ],
+     "required": true,
+     "type": "string"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id], volume, bbox}"
+  },
+  "chamfer": {
+   "effects": "doc",
+   "params": {
+    "distance": {
+     "required": true,
+     "type": "number"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    }
+   },
+   "returns": "{modified: [ids], corners, clamped}"
+  },
+  "copy": {
+   "effects": "doc",
+   "params": {
+    "by": {
+     "required": true,
+     "type": "point3"
+    },
+    "count": {
+     "default": 1,
+     "type": "integer"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    }
+   },
+   "returns": "{created: [ids]}"
+  },
+  "define_param": {
+   "effects": "doc",
+   "params": {
+    "name": {
+     "required": true,
+     "type": "string"
+    },
+    "value": {
+     "required": true,
+     "type": "number"
+    }
+   },
+   "returns": "{name, value, defined}"
+  },
+  "deform": {
+   "effects": "doc",
+   "params": {
+    "amount": {
+     "required": true,
+     "type": "number"
+    },
+    "kind": {
+     "enum": [
+      "twist",
+      "taper",
+      "bend"
+     ],
+     "required": true,
+     "type": "string"
+    },
+    "plane": {
+     "default": "xz",
+     "enum": [
+      "xz",
+      "xy"
+     ],
+     "type": "string"
+    },
+    "refine": {
+     "default": 3,
+     "type": "integer"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    }
+   },
+   "returns": "{modified: [ids]}"
+  },
+  "delete": {
+   "effects": "doc",
+   "params": {
+    "select": {
+     "required": true,
+     "type": "select"
+    }
+   },
+   "returns": "{deleted: n}"
+  },
+  "diff": {
+   "effects": "none",
+   "params": {
+    "against": {
+     "required": true,
+     "type": "string"
+    }
+   },
+   "returns": "{params_changed, added, removed, modified, metrics}"
+  },
+  "doc_info": {
+   "effects": "none",
+   "params": {},
+   "returns": "{units, name, layers, counts, bbox}"
+  },
+  "doc_new": {
+   "effects": "doc",
+   "params": {
+    "name": {
+     "default": "untitled",
+     "type": "string"
+    },
+    "units": {
+     "default": "mm",
+     "enum": [
+      "mm",
+      "cm",
+      "m",
+      "in",
+      "ft"
+     ],
+     "type": "string"
+    }
+   },
+   "returns": "{units, name}"
+  },
+  "export": {
+   "effects": "files",
+   "params": {
+    "camera": {
+     "type": "object"
+    },
+    "height": {
+     "default": 900,
+     "type": "integer"
+    },
+    "path": {
+     "required": true,
+     "type": "string"
+    },
+    "select": {
+     "default": "all",
+     "type": "select"
+    },
+    "width": {
+     "default": 1200,
+     "type": "integer"
+    }
+   },
+   "returns": "format-specific summary, always includes {path}"
+  },
+  "extrude": {
+   "effects": "doc",
+   "params": {
+    "divisions": {
+     "default": 0,
+     "type": "integer"
+    },
+    "height": {
+     "required": true,
+     "type": "number"
+    },
+    "keep": {
+     "default": true,
+     "type": "boolean"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "scale_top": {
+     "default": 1.0,
+     "type": "number"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "twist": {
+     "default": 0.0,
+     "type": "number"
+    },
+    "z": {
+     "default": 0.0,
+     "type": "number"
+    }
+   },
+   "returns": "{created: [ids], volume}"
+  },
+  "fillet": {
+   "effects": "doc",
+   "params": {
+    "radius": {
+     "required": true,
+     "type": "number"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    }
+   },
+   "returns": "{modified: [ids], corners, clamped}"
+  },
+  "find": {
+   "effects": "none",
+   "params": {
+    "at": {
+     "type": "point3"
+    },
+    "bbox": {
+     "type": "object"
+    },
+    "limit": {
+     "default": 10,
+     "type": "integer"
+    },
+    "radius": {
+     "type": "number"
+    },
+    "select": {
+     "default": "all",
+     "type": "select"
+    }
+   },
+   "returns": "{found: [{id, type, layer, tag?, distance, bbox}]}"
+  },
+  "get": {
+   "effects": "none",
+   "params": {
+    "id": {
+     "required": true,
+     "type": "string"
+    }
+   },
+   "returns": "{id, entity, bbox}"
+  },
+  "help": {
+   "effects": "none",
+   "params": {
+    "name": {
+     "type": "string"
+    }
+   },
+   "returns": "{ops: [{op, doc, effects}]} or one op's full description"
+  },
+  "import_dxf": {
+   "effects": "doc",
+   "params": {
+    "layer_prefix": {
+     "default": "",
+     "type": "string"
+    },
+    "path": {
+     "required": true,
+     "type": "string"
+    },
+    "scale": {
+     "default": 1.0,
+     "type": "number"
+    }
+   },
+   "returns": "{created: [ids], imported: {TYPE: n}, skipped: {TYPE: n}, layers, dxf_units?, warnings?}"
+  },
+  "list": {
+   "effects": "none",
+   "params": {
+    "bbox": {
+     "default": false,
+     "type": "boolean"
+    },
+    "select": {
+     "default": "all",
+     "type": "select"
+    }
+   },
+   "returns": "{entities: [{id, type, layer, tag?, brief, bbox?}]}"
+  },
+  "list_layers": {
+   "effects": "none",
+   "params": {},
+   "returns": "{layers: {name: {color, visible, line_width}}}"
+  },
+  "loft": {
+   "effects": "doc",
+   "params": {
+    "divisions": {
+     "default": 0,
+     "type": "integer"
+    },
+    "keep": {
+     "default": true,
+     "type": "boolean"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "samples": {
+     "default": 64,
+     "type": "integer"
+    },
+    "sections": {
+     "required": true,
+     "type": "array"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id], volume, bbox}"
+  },
+  "measure": {
+   "effects": "none",
+   "params": {
+    "kind": {
+     "enum": [
+      "distance",
+      "length",
+      "area",
+      "volume",
+      "bbox"
+     ],
+     "required": true,
+     "type": "string"
+    },
+    "p1": {
+     "type": "point3"
+    },
+    "p2": {
+     "type": "point3"
+    },
+    "select": {
+     "type": "select"
+    }
+   },
+   "returns": "{value} or {bbox, size, center}"
+  },
+  "mirror": {
+   "effects": "doc",
+   "params": {
+    "copy": {
+     "default": false,
+     "type": "boolean"
+    },
+    "p1": {
+     "required": true,
+     "type": "point2"
+    },
+    "p2": {
+     "required": true,
+     "type": "point2"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    }
+   },
+   "returns": "{modified: [ids]} or {created: [ids]}"
+  },
+  "move": {
+   "effects": "doc",
+   "params": {
+    "by": {
+     "required": true,
+     "type": "point3"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    }
+   },
+   "returns": "{modified: [ids]}"
+  },
+  "offset": {
+   "effects": "doc",
+   "params": {
+    "delta": {
+     "required": true,
+     "type": "number"
+    },
+    "join": {
+     "default": "miter",
+     "enum": [
+      "round",
+      "miter",
+      "square"
+     ],
+     "type": "string"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id]}"
+  },
+  "params": {
+   "effects": "none",
+   "params": {},
+   "returns": "{params, levels, recipe_commands}"
+  },
+  "program": {
+   "effects": "none",
+   "params": {},
+   "returns": "{rooms: [...], total_area, by_name, by_level}"
+  },
+  "project": {
+   "effects": "doc",
+   "params": {
+    "axis": {
+     "default": "z",
+     "enum": [
+      "z",
+      "x",
+      "y"
+     ],
+     "type": "string"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "select": {
+     "default": {
+      "types": [
+       "solid",
+       "wall"
+      ]
+     },
+     "type": "select"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [ids]}"
+  },
+  "recipe_set": {
+   "effects": "doc",
+   "params": {
+    "commands": {
+     "required": true,
+     "type": "array"
+    },
+    "run": {
+     "default": false,
+     "type": "boolean"
+    }
+   },
+   "returns": "{recipe_commands}"
+  },
+  "regenerate": {
+   "effects": "doc",
+   "params": {
+    "params": {
+     "type": "object"
+    }
+   },
+   "returns": "{regenerated, entities, params}"
+  },
+  "render": {
+   "effects": "files",
+   "params": {
+    "camera": {
+     "type": "object"
+    },
+    "height": {
+     "default": 900,
+     "type": "integer"
+    },
+    "labels": {
+     "default": false,
+     "type": "boolean"
+    },
+    "mode": {
+     "default": "auto",
+     "enum": [
+      "auto",
+      "plan",
+      "shaded"
+     ],
+     "type": "string"
+    },
+    "path": {
+     "required": true,
+     "type": "string"
+    },
+    "select": {
+     "default": "all",
+     "type": "select"
+    },
+    "width": {
+     "default": 1200,
+     "type": "integer"
+    }
+   },
+   "returns": "{path, width, height, ...}"
+  },
+  "restore": {
+   "effects": "doc",
+   "params": {
+    "name": {
+     "required": true,
+     "type": "string"
+    }
+   },
+   "returns": "{restored, entities}"
+  },
+  "revolve": {
+   "effects": "doc",
+   "params": {
+    "angle": {
+     "default": 360.0,
+     "type": "number"
+    },
+    "axis_point": {
+     "default": [
+      0.0,
+      0.0
+     ],
+     "type": "point2"
+    },
+    "keep": {
+     "default": true,
+     "type": "boolean"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "segments": {
+     "default": 0,
+     "type": "integer"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [ids]}"
+  },
+  "rotate": {
+   "effects": "doc",
+   "params": {
+    "angle": {
+     "required": true,
+     "type": "number"
+    },
+    "axis": {
+     "type": "point3"
+    },
+    "center": {
+     "default": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "type": "point3"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    }
+   },
+   "returns": "{modified: [ids]}"
+  },
+  "scale": {
+   "effects": "doc",
+   "params": {
+    "center": {
+     "default": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "type": "point3"
+    },
+    "factor": {
+     "required": true,
+     "type": "object"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    }
+   },
+   "returns": "{modified: [ids]}"
+  },
+  "set_param": {
+   "effects": "doc",
+   "params": {
+    "name": {
+     "required": true,
+     "type": "string"
+    },
+    "value": {
+     "required": true,
+     "type": "number"
+    }
+   },
+   "returns": "{name, value}"
+  },
+  "set_units": {
+   "effects": "doc",
+   "params": {
+    "units": {
+     "enum": [
+      "mm",
+      "cm",
+      "m",
+      "in",
+      "ft"
+     ],
+     "required": true,
+     "type": "string"
+    }
+   },
+   "returns": "{units}"
+  },
+  "shell": {
+   "effects": "doc",
+   "params": {
+    "segments": {
+     "default": 12,
+     "type": "integer"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    },
+    "thickness": {
+     "required": true,
+     "type": "number"
+    }
+   },
+   "returns": "{modified: [ids]}"
+  },
+  "slice": {
+   "effects": "doc",
+   "params": {
+    "layer": {
+     "type": "string"
+    },
+    "select": {
+     "default": {
+      "types": [
+       "solid",
+       "wall"
+      ]
+     },
+     "type": "select"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "z": {
+     "required": true,
+     "type": "number"
+    }
+   },
+   "returns": "{created: [ids]}"
+  },
+  "smooth": {
+   "effects": "doc",
+   "params": {
+    "angle": {
+     "default": 52.5,
+     "type": "number"
+    },
+    "refine": {
+     "default": 3,
+     "type": "integer"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    }
+   },
+   "returns": "{modified: [ids], triangles}"
+  },
+  "snapshot": {
+   "effects": "files",
+   "params": {
+    "name": {
+     "type": "string"
+    }
+   },
+   "returns": "{snapshot, entities}"
+  },
+  "snapshots": {
+   "effects": "none",
+   "params": {},
+   "returns": "{snapshots: [{name, modified, size}]}"
+  },
+  "solidify": {
+   "effects": "doc",
+   "params": {
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [ids]}"
+  },
+  "sweep": {
+   "effects": "doc",
+   "params": {
+    "keep": {
+     "default": true,
+     "type": "boolean"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "path": {
+     "required": true,
+     "type": "array"
+    },
+    "profile": {
+     "required": true,
+     "type": "select"
+    },
+    "samples": {
+     "default": 48,
+     "type": "integer"
+    },
+    "scale_end": {
+     "default": 1.0,
+     "type": "number"
+    },
+    "smooth": {
+     "default": true,
+     "type": "boolean"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "twist": {
+     "default": 0.0,
+     "type": "number"
+    }
+   },
+   "returns": "{created: [id], volume, bbox}"
+  },
+  "update": {
+   "effects": "doc",
+   "params": {
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{modified: [ids]}"
+  },
+  "validate": {
+   "effects": "none",
+   "params": {},
+   "returns": "{valid, problems: [{id, code, message}]}"
+  }
+ },
+ "version": "0.5.0"
+}

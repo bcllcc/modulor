@@ -1,0 +1,55 @@
+[
+  {"op": "doc_new", "units": "mm", "name": "bracket"},
+
+  {"op": "add_rect", "at": [0, 0], "width": 120, "height": 80, "tag": "blank"},
+  {"op": "offset", "select": {"tags": ["blank"]}, "delta": -8, "tag": "shrunk"},
+  {"op": "offset", "select": {"tags": ["shrunk"]}, "delta": 8, "join": "round",
+   "tag": "plate"},
+  {"op": "delete", "select": {"tags": ["blank", "shrunk"]}},
+
+  {"op": "add_circle", "center": [15, 15], "radius": 5, "tag": "hole"},
+  {"op": "array", "select": {"tags": ["hole"]}, "kind": "grid",
+   "nx": 2, "ny": 2, "dx": 90, "dy": 50},
+
+  {"op": "add_rect", "at": [60, 40], "width": 40, "height": 20,
+   "anchor": "center", "tag": "slot"},
+  {"op": "add_circle", "center": [40, 40], "radius": 10, "tag": "slot"},
+  {"op": "add_circle", "center": [80, 40], "radius": 10, "tag": "slot"},
+
+  {"op": "boolean_2d", "kind": "difference", "a": {"tags": ["plate"]},
+   "b": {"types": ["circle", "polyline"]}, "tag": "profile"},
+
+  {"op": "export", "path": "examples/out/bracket_profile.svg"},
+
+  {"op": "add_material", "name": "alu", "color": "#aab4bd", "metallic": 0.9,
+   "roughness": 0.35},
+  {"op": "extrude", "select": {"tags": ["profile"]}, "height": 12,
+   "keep": false, "material": "alu", "tag": "body"},
+
+  {"op": "add_cylinder", "at": [60, 40, 0], "radius": 18, "height": 34,
+   "material": "alu", "tag": "boss"},
+  {"op": "boolean_3d", "kind": "union", "a": {"tags": ["body", "boss"]},
+   "tag": "body"},
+  {"op": "add_cylinder", "at": [60, 40, -1], "radius": 10, "height": 40,
+   "tag": "bore"},
+  {"op": "boolean_3d", "kind": "difference", "a": {"tags": ["body"]},
+   "b": {"tags": ["bore"]}, "tag": "part", "material": "alu"},
+
+  {"op": "measure", "kind": "volume", "select": {"tags": ["part"]}},
+  {"op": "validate"},
+
+  {"op": "render", "path": "examples/out/bracket_iso.png", "mode": "shaded",
+   "camera": "iso", "width": 1200, "height": 900},
+  {"op": "render", "path": "examples/out/bracket_top.png", "mode": "shaded",
+   "camera": "top", "width": 1200, "height": 900},
+
+  {"op": "slice", "select": {"tags": ["part"]}, "z": 6, "layer": "section"},
+  {"op": "export", "path": "examples/out/bracket_section.dxf",
+   "select": {"layers": ["section"]}},
+
+  {"op": "export", "path": "examples/out/bracket.stl"},
+  {"op": "export", "path": "examples/out/bracket.glb"},
+  {"op": "export", "path": "examples/out/bracket.obj"},
+
+  {"op": "doc_info"}
+]

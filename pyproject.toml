@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "modulor"
+version = "0.5.0"
+description = "Agent-native 2D drafting + 3D modeling kernel. JSON in, geometry out."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["cad", "agent", "llm", "mcp", "geometry", "dxf", "gltf", "drafting"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+dependencies = [
+    "numpy>=1.26",
+    "manifold3d>=3.0",
+]
+
+[project.optional-dependencies]
+check = ["jsonschema>=4"]
+dev = ["pytest>=7", "jsonschema>=4"]
+
+[project.scripts]
+modulor = "modulor.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["modulor*"]
+
+[tool.setuptools.package-data]
+modulor = ["viewer/*.html", "document.schema.json"]

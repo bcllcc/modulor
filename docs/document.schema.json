@@ -1,0 +1,330 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://modulor.dev/schemas/document.schema.json",
+  "title": "Modulor document (format modulor/1)",
+  "description": "The on-disk document format: a complete, strict-JSON, diffable description of a 2D drawing + 3D model, including design parameters and the generating recipe. See docs/FORMAT.md for semantics.",
+  "type": "object",
+  "required": ["format", "units", "meta", "counter", "layers", "materials",
+               "entities"],
+  "$comment": "params/levels/recipe were added during the modulor/1 lifetime and are therefore optional: documents written by older writers stay valid (see FORMAT.md versioning policy)",
+  "additionalProperties": false,
+  "properties": {
+    "format": {"enum": ["modulor/1", "nativecad/1"],
+               "$comment": "nativecad/1 is the pre-rename legacy id, readable forever"},
+    "units": {"enum": ["mm", "cm", "m", "in", "ft"]},
+    "meta": {
+      "type": "object",
+      "required": ["name", "created", "modified"],
+      "properties": {
+        "name": {"type": "string"},
+        "created": {"type": "string"},
+        "modified": {"type": "string"}
+      },
+      "$comment": "additional meta fields are permitted (writer extensions)"
+    },
+    "counter": {"type": "integer", "minimum": 0,
+                "description": "last issued entity id number; ids are never reused"},
+    "layers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["color", "visible", "line_width"],
+        "additionalProperties": false,
+        "properties": {
+          "color": {"$ref": "#/$defs/color"},
+          "visible": {"type": "boolean"},
+          "line_width": {"type": "number"}
+        }
+      }
+    },
+    "materials": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["color"],
+        "additionalProperties": false,
+        "properties": {
+          "color": {"$ref": "#/$defs/color"},
+          "metallic": {"type": "number", "minimum": 0, "maximum": 1},
+          "roughness": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": {"type": "number"},
+      "description": "named design parameters, referenced by expressions"
+    },
+    "levels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["elevation"],
+        "additionalProperties": false,
+        "properties": {
+          "elevation": {"type": "number"},
+          "height": {"type": "number"}
+        }
+      }
+    },
+    "recipe": {
+      "type": "array",
+      "description": "the op commands that generate this model (design intent); numeric fields here may be expression strings",
+      "items": {
+        "type": "object",
+        "required": ["op"],
+        "properties": {"op": {"type": "string"}}
+      }
+    },
+    "entities": {
+      "type": "object",
+      "propertyNames": {"pattern": "^e[0-9]+$"},
+      "additionalProperties": {"$ref": "#/$defs/entity"}
+    }
+  },
+  "$defs": {
+    "color": {"type": "string", "pattern": "^#[0-9a-fA-F]{3,8}$"},
+    "point2": {
+      "type": "array", "items": {"type": "number"},
+      "minItems": 2, "maxItems": 2
+    },
+    "point3": {
+      "type": "array", "items": {"type": "number"},
+      "minItems": 3, "maxItems": 3
+    },
+    "contour": {
+      "type": "array", "items": {"$ref": "#/$defs/point2"}, "minItems": 3
+    },
+    "common": {
+      "type": "object",
+      "required": ["type", "layer"],
+      "properties": {
+        "type": {"type": "string"},
+        "layer": {"type": "string"},
+        "tag": {"type": "string"}
+      }
+    },
+    "entity": {
+      "allOf": [{"$ref": "#/$defs/common"}],
+      "oneOf": [
+        {"$ref": "#/$defs/line"}, {"$ref": "#/$defs/polyline"},
+        {"$ref": "#/$defs/spline"}, {"$ref": "#/$defs/circle"},
+        {"$ref": "#/$defs/arc"}, {"$ref": "#/$defs/region"},
+        {"$ref": "#/$defs/text"}, {"$ref": "#/$defs/dim"},
+        {"$ref": "#/$defs/dim_angular"}, {"$ref": "#/$defs/dim_radial"},
+        {"$ref": "#/$defs/wall"}, {"$ref": "#/$defs/grid"},
+        {"$ref": "#/$defs/room"}, {"$ref": "#/$defs/solid"}
+      ]
+    },
+    "line": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "line"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "start": {"$ref": "#/$defs/point2"},
+        "end": {"$ref": "#/$defs/point2"}
+      },
+      "required": ["type", "start", "end"],
+      "additionalProperties": false
+    },
+    "polyline": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "polyline"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "points": {"type": "array", "items": {"$ref": "#/$defs/point2"},
+                   "minItems": 2},
+        "closed": {"type": "boolean"}
+      },
+      "required": ["type", "points", "closed"],
+      "additionalProperties": false
+    },
+    "spline": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "spline"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "points": {"type": "array", "items": {"$ref": "#/$defs/point2"},
+                   "minItems": 3,
+                   "description": "control points the curve passes through (centripetal Catmull-Rom)"},
+        "closed": {"type": "boolean"},
+        "samples": {"type": "integer", "minimum": 2, "maximum": 64}
+      },
+      "required": ["type", "points", "closed", "samples"],
+      "additionalProperties": false
+    },
+    "circle": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "circle"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "center": {"$ref": "#/$defs/point2"},
+        "radius": {"type": "number", "exclusiveMinimum": 0},
+        "segments": {"type": "integer"}
+      },
+      "required": ["type", "center", "radius"],
+      "additionalProperties": false
+    },
+    "arc": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "arc"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "center": {"$ref": "#/$defs/point2"},
+        "radius": {"type": "number", "exclusiveMinimum": 0},
+        "start_angle": {"type": "number"},
+        "end_angle": {"type": "number"}
+      },
+      "required": ["type", "center", "radius", "start_angle", "end_angle"],
+      "additionalProperties": false
+    },
+    "region": {
+      "type": "object",
+      "description": "area bounded by contours under the positive (non-zero winding) fill rule: CCW outers, CW holes",
+      "properties": {
+        "type": {"const": "region"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "contours": {"type": "array", "items": {"$ref": "#/$defs/contour"},
+                     "minItems": 1}
+      },
+      "required": ["type", "contours"],
+      "additionalProperties": false
+    },
+    "text": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "text"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "at": {"$ref": "#/$defs/point2"},
+        "text": {"type": "string"},
+        "height": {"type": "number", "exclusiveMinimum": 0},
+        "rotation": {"type": "number"}
+      },
+      "required": ["type", "at", "text", "height", "rotation"],
+      "additionalProperties": false
+    },
+    "dim": {
+      "type": "object",
+      "description": "aligned linear dimension; the value is measured live from p1-p2",
+      "properties": {
+        "type": {"const": "dim"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "p1": {"$ref": "#/$defs/point2"},
+        "p2": {"$ref": "#/$defs/point2"},
+        "offset": {"type": "number"},
+        "text": {"type": "string"}
+      },
+      "required": ["type", "p1", "p2", "offset"],
+      "additionalProperties": false
+    },
+    "dim_angular": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "dim_angular"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "center": {"$ref": "#/$defs/point2"},
+        "p1": {"$ref": "#/$defs/point2"},
+        "p2": {"$ref": "#/$defs/point2"},
+        "radius": {"type": "number", "exclusiveMinimum": 0},
+        "text": {"type": "string"}
+      },
+      "required": ["type", "center", "p1", "p2", "radius"],
+      "additionalProperties": false
+    },
+    "dim_radial": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "dim_radial"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "center": {"$ref": "#/$defs/point2"},
+        "radius": {"type": "number", "exclusiveMinimum": 0},
+        "direction": {"type": "number"},
+        "text": {"type": "string"}
+      },
+      "required": ["type", "center", "radius", "direction"],
+      "additionalProperties": false
+    },
+    "wall": {
+      "type": "object",
+      "description": "parametric wall along a centerline; footprint and 3D body are derived, never stored",
+      "properties": {
+        "type": {"const": "wall"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "path": {"type": "array", "items": {"$ref": "#/$defs/point2"},
+                 "minItems": 2,
+                 "description": "centerline; last point == first point means a closed ring"},
+        "thickness": {"type": "number", "exclusiveMinimum": 0},
+        "height": {"type": "number", "exclusiveMinimum": 0},
+        "material": {"type": "string"},
+        "openings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["at", "width", "type"],
+            "additionalProperties": false,
+            "properties": {
+              "at": {"type": "number",
+                     "description": "distance along the centerline to the opening center"},
+              "width": {"type": "number", "exclusiveMinimum": 0},
+              "type": {"enum": ["door", "window"]},
+              "sill": {"type": "number"},
+              "head": {"type": "number"}
+            }
+          }
+        }
+      },
+      "required": ["type", "path", "thickness", "openings"],
+      "additionalProperties": false
+    },
+    "grid": {
+      "type": "object",
+      "description": "structural grid; coordinates are looked up by label via grid_x()/grid_y() expressions",
+      "properties": {
+        "type": {"const": "grid"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "xs": {"type": "array", "items": {"type": "number"}, "minItems": 2},
+        "ys": {"type": "array", "items": {"type": "number"}, "minItems": 2},
+        "x_labels": {"type": "array", "items": {"type": "string"}},
+        "y_labels": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["type", "xs", "ys", "x_labels", "y_labels"],
+      "additionalProperties": false
+    },
+    "room": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "room"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "name": {"type": "string"},
+        "points": {"$ref": "#/$defs/contour"},
+        "kind": {"enum": ["room", "zone", "site"]},
+        "level": {"type": "string"}
+      },
+      "required": ["type", "name", "points", "kind"],
+      "additionalProperties": false
+    },
+    "solid": {
+      "type": "object",
+      "description": "watertight triangle mesh, CCW winding viewed from outside",
+      "properties": {
+        "type": {"const": "solid"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "material": {"type": "string"},
+        "mesh": {
+          "type": "object",
+          "required": ["vertices", "triangles"],
+          "additionalProperties": false,
+          "properties": {
+            "vertices": {"type": "array", "items": {"$ref": "#/$defs/point3"}},
+            "triangles": {"type": "array",
+                          "items": {"type": "array",
+                                    "items": {"type": "integer", "minimum": 0},
+                                    "minItems": 3, "maxItems": 3}}
+          }
+        }
+      },
+      "required": ["type", "mesh"],
+      "additionalProperties": false
+    }
+  }
+}

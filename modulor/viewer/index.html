@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Modulor viewer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231f2430'/%3E%3Cpath d='M4 12V4l8 8V4' stroke='%238db0ff' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f4f5f7; --panel: #ffffff; --ink: #1f2430; --mut: #8a92a3;
+    --line: #e3e6ec; --accent: #2f6df6; --ok: #2eb872;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    height: 100vh; display: flex; flex-direction: column;
+    font: 13px/1.5 ui-monospace, Consolas, "Cascadia Mono", monospace;
+    background: var(--bg); color: var(--ink); overflow: hidden;
+  }
+  header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 9px 16px; background: var(--ink); color: #e8eaf0;
+  }
+  header .logo { font-weight: 700; letter-spacing: .4px; }
+  header .logo span { color: #8db0ff; }
+  header .doc { color: #aeb6c6; overflow: hidden; text-overflow: ellipsis;
+                white-space: nowrap; max-width: 38vw; }
+  #dot { width: 9px; height: 9px; border-radius: 50%; background: #666;
+         flex: none; transition: background .25s; }
+  #dot.live { background: var(--ok); }
+  #dot.flash { background: #ffd34d; }
+  header .gap { flex: 1; }
+  header button {
+    font: inherit; color: #e8eaf0; background: #343b4d;
+    border: 1px solid #4a5269; border-radius: 4px;
+    padding: 3px 11px; cursor: pointer;
+  }
+  header button:hover { background: #44507a; }
+  main { flex: 1; display: flex; min-height: 0; }
+  .pane { flex: 1; position: relative; background: var(--panel);
+          margin: 10px; border: 1px solid var(--line); border-radius: 6px;
+          overflow: hidden; min-width: 0; }
+  .pane .tag {
+    position: absolute; top: 8px; left: 10px; z-index: 5;
+    color: var(--mut); font-size: 11px; letter-spacing: 1.2px;
+    pointer-events: none;
+  }
+  .pane .empty {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; color: var(--mut); z-index: 4;
+    pointer-events: none; text-align: center; padding: 0 24px;
+  }
+  .pane .empty[hidden] { display: none; }
+  #svgbox { width: 100%; height: 100%; cursor: grab; }
+  #svgbox:active { cursor: grabbing; }
+  #svgbox svg { width: 100%; height: 100%; display: block; }
+  #glcanvas { width: 100%; height: 100%; display: block; cursor: grab; }
+  #glcanvas:active { cursor: grabbing; }
+  footer {
+    display: flex; align-items: center; gap: 18px;
+    padding: 7px 16px; border-top: 1px solid var(--line);
+    background: var(--panel); flex-wrap: wrap;
+  }
+  footer .layers { display: flex; gap: 12px; flex-wrap: wrap; }
+  footer label { display: inline-flex; align-items: center; gap: 5px;
+                 cursor: pointer; color: var(--ink); }
+  footer .sw { width: 10px; height: 10px; border-radius: 2px;
+               display: inline-block; }
+  footer .stats { color: var(--mut); margin-left: auto; }
+</style>
+</head>
+<body>
+<header>
+  <div id="dot"></div>
+  <div class="logo">modu<span>lor</span></div>
+  <div class="doc" id="docpath"></div>
+  <div class="gap"></div>
+  <button data-dl="svg">SVG</button>
+  <button data-dl="dxf">DXF</button>
+  <button data-dl="glb">GLB</button>
+  <button data-dl="stl">STL</button>
+  <button data-dl="json">JSON</button>
+</header>
+<main>
+  <div class="pane">
+    <div class="tag">PLAN — 2D</div>
+    <div class="empty" id="empty2d" hidden>no 2D entities yet</div>
+    <div id="svgbox"></div>
+  </div>
+  <div class="pane">
+    <div class="tag">MODEL — 3D</div>
+    <div class="empty" id="empty3d" hidden>no solids or walls yet</div>
+    <canvas id="glcanvas"></canvas>
+  </div>
+</main>
+<footer>
+  <div class="layers" id="layers"></div>
+  <div class="stats" id="stats">connecting…</div>
+</footer>
+
+<script>
+"use strict";
+/* Modulor read-only viewer.
+   Polls /api/state; on any document change re-fetches the SVG plan and the
+   flat-shaded mesh buffers. No editing — humans watch, agents work. */
+
+const $ = id => document.getElementById(id);
+let lastMtime = null;
+let layerSel = null;          // null = all layers; Set when filtered
+let knownLayers = {};
+
+/* ---------------------------------------------------- polling */
+
+async function poll() {
+  try {
+    const st = await (await fetch("/api/state")).json();
+    $("dot").classList.add("live");
+    if (st.exists) {
+      $("docpath").textContent = st.doc + "  ·  " + st.units;
+      renderLayers(st.layers);
+      renderStats(st);
+      if (st.mtime !== lastMtime) {
+        lastMtime = st.mtime;
+        flash();
+        await refresh(st);
+      }
+    } else {
+      $("docpath").textContent = st.doc + "  ·  waiting for file…";
+    }
+  } catch (e) {
+    $("dot").classList.remove("live");
+  }
+  setTimeout(poll, 700);
+}
+
+function flash() {
+  $("dot").classList.add("flash");
+  setTimeout(() => $("dot").classList.remove("flash"), 350);
+}
+
+function layerQuery() {
+  if (!layerSel) return "";
+  return "?layers=" + encodeURIComponent([...layerSel].join(","));
+}
+
+async function refresh() {
+  const q = layerQuery();
+  const [svgText, mesh] = await Promise.all([
+    fetch("/api/svg" + q).then(r => r.text()),
+    fetch("/api/mesh" + q).then(r => r.json()),
+  ]);
+  setSvg(svgText);
+  setMesh(mesh);
+}
+
+/* ---------------------------------------------------- layers + stats */
+
+function renderLayers(layers) {
+  const names = Object.keys(layers).sort();
+  if (JSON.stringify(names) === JSON.stringify(Object.keys(knownLayers).sort())
+      && names.every(n => layers[n].color === knownLayers[n].color)) return;
+  knownLayers = layers;
+  const box = $("layers");
+  box.innerHTML = "";
+  for (const name of names) {
+    const lab = document.createElement("label");
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = !layerSel || layerSel.has(name);
+    cb.onchange = () => {
+      layerSel = new Set(
+        [...box.querySelectorAll("input:checked")].map(i => i.dataset.n));
+      if (layerSel.size === names.length) layerSel = null;
+      refresh();
+    };
+    cb.dataset.n = name;
+    const sw = document.createElement("span");
+    sw.className = "sw";
+    sw.style.background = layers[name].color;
+    lab.append(cb, sw, document.createTextNode(name));
+    box.append(lab);
+  }
+}
+
+function renderStats(st) {
+  const c = Object.entries(st.counts || {})
+    .map(([k, v]) => `${v} ${k}`).join(" · ") || "empty";
+  let size = "";
+  if (st.bbox) {
+    const s = st.bbox.max.map((v, i) => v - st.bbox.min[i]);
+    size = "  ·  " + s.map(v => Math.round(v * 100) / 100).join(" × ")
+         + " " + st.units;
+  }
+  $("stats").textContent = c + size;
+}
+
+/* ---------------------------------------------------- downloads */
+
+for (const b of document.querySelectorAll("[data-dl]"))
+  b.onclick = () => location.href = "/api/download/" + b.dataset.dl + layerQuery();
+
+/* ---------------------------------------------------- 2D pane: SVG pan/zoom */
+
+let vb = null;        // current viewBox {x, y, w, h}
+let userMoved2d = false;  // refit on doc changes until the user takes over
+
+function setSvg(text) {
+  const box = $("svgbox");
+  box.innerHTML = text;
+  const svg = box.querySelector("svg");
+  if (!svg) return;
+  $("empty2d").hidden = svg.querySelector("polyline,polygon,circle,path,text") !== null;
+  svg.removeAttribute("width");
+  svg.removeAttribute("height");
+  const parts = svg.getAttribute("viewBox").split(/\s+/).map(Number);
+  const home = { x: parts[0], y: parts[1], w: parts[2], h: parts[3] };
+  svg.dataset.home = JSON.stringify(home);
+  vb = (userMoved2d && vb) ? vb : { ...home };
+  applyVb();
+}
+
+function applyVb() {
+  const svg = $("svgbox").querySelector("svg");
+  if (svg && vb) svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+}
+
+$("svgbox").addEventListener("wheel", e => {
+  if (!vb) return;
+  e.preventDefault();
+  userMoved2d = true;
+  const svg = $("svgbox").querySelector("svg");
+  const r = svg.getBoundingClientRect();
+  const fx = (e.clientX - r.left) / r.width;
+  const fy = (e.clientY - r.top) / r.height;
+  const k = e.deltaY > 0 ? 1.18 : 1 / 1.18;
+  const nw = vb.w * k, nh = vb.h * k;
+  vb.x += (vb.w - nw) * fx;
+  vb.y += (vb.h - nh) * fy;
+  vb.w = nw; vb.h = nh;
+  applyVb();
+}, { passive: false });
+
+(() => {
+  let drag = null;
+  const box = $("svgbox");
+  box.addEventListener("pointerdown", e => {
+    drag = { x: e.clientX, y: e.clientY };
+    box.setPointerCapture(e.pointerId);
+  });
+  box.addEventListener("pointermove", e => {
+    if (!drag || !vb) return;
+    userMoved2d = true;
+    const svg = box.querySelector("svg");
+    const r = svg.getBoundingClientRect();
+    vb.x -= (e.clientX - drag.x) * vb.w / r.width;
+    vb.y -= (e.clientY - drag.y) * vb.h / r.height;
+    drag = { x: e.clientX, y: e.clientY };
+    applyVb();
+  });
+  box.addEventListener("pointerup", () => drag = null);
+  box.addEventListener("dblclick", () => {
+    const svg = box.querySelector("svg");
+    userMoved2d = false;
+    if (svg) { vb = JSON.parse(svg.dataset.home); applyVb(); }
+  });
+})();
+
+/* ---------------------------------------------------- 3D pane: WebGL orbit */
+
+const canvas = $("glcanvas");
+const gl = canvas.getContext("webgl", { antialias: true });
+let scene = { objects: [], center: [0, 0, 0], radius: 1 };
+let cam = { theta: -0.7, phi: 0.55, dist: 3, target: [0, 0, 0] };
+let needDraw = true;
+let userMoved3d = false;
+
+const VS = `
+  attribute vec3 aPos; attribute vec3 aNrm;
+  uniform mat4 uMVP;
+  varying vec3 vNrm;
+  void main() { vNrm = aNrm; gl_Position = uMVP * vec4(aPos, 1.0); }`;
+const FS = `
+  precision mediump float;
+  uniform vec3 uColor; uniform vec3 uLight; uniform float uFlat;
+  varying vec3 vNrm;
+  void main() {
+    float lam = max(dot(normalize(vNrm), uLight), 0.0);
+    vec3 c = uColor * (0.34 + 0.66 * lam);
+    gl_FragColor = vec4(mix(c, uColor, uFlat), 1.0);
+  }`;
+
+function makeProgram() {
+  const mk = (type, src) => {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+      throw new Error(gl.getShaderInfoLog(s));
+    return s;
+  };
+  const p = gl.createProgram();
+  gl.attachShader(p, mk(gl.VERTEX_SHADER, VS));
+  gl.attachShader(p, mk(gl.FRAGMENT_SHADER, FS));
+  gl.linkProgram(p);
+  return p;
+}
+const prog = makeProgram();
+const loc = {
+  pos: gl.getAttribLocation(prog, "aPos"),
+  nrm: gl.getAttribLocation(prog, "aNrm"),
+  mvp: gl.getUniformLocation(prog, "uMVP"),
+  color: gl.getUniformLocation(prog, "uColor"),
+  light: gl.getUniformLocation(prog, "uLight"),
+  flat: gl.getUniformLocation(prog, "uFlat"),
+};
+
+function setMesh(mesh) {
+  for (const o of scene.objects) {
+    gl.deleteBuffer(o.pb); gl.deleteBuffer(o.nb);
+    if (o.eb) gl.deleteBuffer(o.eb);
+  }
+  scene.objects = [];
+  $("empty3d").hidden = mesh.objects.length > 0;
+  for (const o of mesh.objects) {
+    const pb = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, pb);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(o.positions), gl.STATIC_DRAW);
+    const nb = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, nb);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(o.normals), gl.STATIC_DRAW);
+    let eb = null, en = 0;
+    if (o.edges.length) {
+      eb = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, eb);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(o.edges), gl.STATIC_DRAW);
+      en = o.edges.length / 3;
+    }
+    scene.objects.push({ pb, nb, eb, n: o.positions.length / 3, en,
+                         color: o.color });
+  }
+  if (mesh.bbox) {
+    const mn = mesh.bbox.min, mx = mesh.bbox.max;
+    const c = mn.map((v, i) => (v + mx[i]) / 2);
+    const r = Math.hypot(mx[0] - mn[0], mx[1] - mn[1], mx[2] - mn[2]) / 2 || 1;
+    scene.center = c; scene.radius = r;
+    if (!userMoved3d) { cam.target = c.slice(); cam.dist = r * 2.6; }
+  }
+  needDraw = true;
+}
+
+/* --- minimal mat4 (column-major) --- */
+function perspective(fovy, asp, near, far) {
+  const f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
+  return [f / asp, 0, 0, 0,  0, f, 0, 0,
+          0, 0, (far + near) * nf, -1,  0, 0, 2 * far * near * nf, 0];
+}
+function lookAt(eye, ctr, up) {
+  const sub = (a, b) => a.map((v, i) => v - b[i]);
+  const nrm = a => { const l = Math.hypot(...a); return a.map(v => v / l); };
+  const cross = (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2],
+                           a[0]*b[1]-a[1]*b[0]];
+  const dot = (a, b) => a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+  const z = nrm(sub(eye, ctr));
+  const x = nrm(cross(up, z));
+  const y = cross(z, x);
+  return [x[0], y[0], z[0], 0,  x[1], y[1], z[1], 0,  x[2], y[2], z[2], 0,
+          -dot(x, eye), -dot(y, eye), -dot(z, eye), 1];
+}
+function mul(a, b) {
+  const o = new Array(16).fill(0);
+  for (let i = 0; i < 4; i++)
+    for (let j = 0; j < 4; j++)
+      for (let k = 0; k < 4; k++)
+        o[j * 4 + i] += a[k * 4 + i] * b[j * 4 + k];
+  return o;
+}
+
+function draw() {
+  requestAnimationFrame(draw);
+  if (!needDraw) return;
+  needDraw = false;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== w * devicePixelRatio) {
+    canvas.width = w * devicePixelRatio;
+    canvas.height = h * devicePixelRatio;
+  }
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.clearColor(0.975, 0.975, 0.98, 1);
+  gl.enable(gl.DEPTH_TEST);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  if (!scene.objects.length) return;
+
+  const cp = Math.cos(cam.phi), sp = Math.sin(cam.phi);
+  const eye = [cam.target[0] + cam.dist * cp * Math.cos(cam.theta),
+               cam.target[1] + cam.dist * cp * Math.sin(cam.theta),
+               cam.target[2] + cam.dist * sp];
+  const view = lookAt(eye, cam.target, [0, 0, 1]);
+  const proj = perspective(0.8, w / h, cam.dist * 0.01, cam.dist * 40);
+  const mvp = mul(proj, view);
+
+  // headlight slightly up-left of the camera (matches the PNG renderer)
+  const f = [cam.target[0] - eye[0], cam.target[1] - eye[1],
+             cam.target[2] - eye[2]];
+  const fl = Math.hypot(...f).toFixed ? Math.hypot(...f) : 1;
+  const light = [-f[0] / fl + 0.3, -f[1] / fl + 0.1, -f[2] / fl + 0.5];
+  const ll = Math.hypot(...light);
+
+  gl.useProgram(prog);
+  gl.uniformMatrix4fv(loc.mvp, false, new Float32Array(mvp));
+  gl.uniform3f(loc.light, light[0] / ll, light[1] / ll, light[2] / ll);
+  gl.enable(gl.POLYGON_OFFSET_FILL);
+  gl.polygonOffset(1.0, 1.0);
+
+  for (const o of scene.objects) {
+    gl.uniform3f(loc.color, ...o.color);
+    gl.uniform1f(loc.flat, 0.0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, o.pb);
+    gl.enableVertexAttribArray(loc.pos);
+    gl.vertexAttribPointer(loc.pos, 3, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, o.nb);
+    gl.enableVertexAttribArray(loc.nrm);
+    gl.vertexAttribPointer(loc.nrm, 3, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.TRIANGLES, 0, o.n);
+  }
+  for (const o of scene.objects) {
+    if (!o.eb) continue;
+    gl.uniform3f(loc.color, o.color[0] * 0.35, o.color[1] * 0.35,
+                 o.color[2] * 0.35);
+    gl.uniform1f(loc.flat, 1.0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, o.eb);
+    gl.vertexAttribPointer(loc.pos, 3, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.LINES, 0, o.en);
+  }
+}
+requestAnimationFrame(draw);
+
+/* --- orbit controls: drag rotate, right/shift-drag pan, wheel zoom --- */
+(() => {
+  let st = null;
+  canvas.addEventListener("contextmenu", e => e.preventDefault());
+  canvas.addEventListener("pointerdown", e => {
+    st = { x: e.clientX, y: e.clientY,
+           pan: e.button === 2 || e.shiftKey };
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener("pointermove", e => {
+    if (!st) return;
+    userMoved3d = true;
+    const dx = e.clientX - st.x, dy = e.clientY - st.y;
+    st.x = e.clientX; st.y = e.clientY;
+    if (st.pan) {
+      const k = cam.dist / canvas.clientHeight * 1.6;
+      const ct = Math.cos(cam.theta), stt = Math.sin(cam.theta);
+      const sp = Math.sin(cam.phi), cp = Math.cos(cam.phi);
+      // screen-right and screen-up in world space
+      cam.target[0] += (stt * dx + ct * sp * dy) * k;
+      cam.target[1] += (-ct * dx + stt * sp * dy) * k;
+      cam.target[2] += (-cp * dy) * k;
+    } else {
+      cam.theta -= dx * 0.008;
+      cam.phi = Math.min(1.55, Math.max(-1.55, cam.phi + dy * 0.008));
+    }
+    needDraw = true;
+  });
+  canvas.addEventListener("pointerup", () => st = null);
+  canvas.addEventListener("wheel", e => {
+    e.preventDefault();
+    userMoved3d = true;
+    cam.dist *= e.deltaY > 0 ? 1.15 : 1 / 1.15;
+    cam.dist = Math.max(scene.radius * 0.05, cam.dist);
+    needDraw = true;
+  }, { passive: false });
+  canvas.addEventListener("dblclick", () => {
+    userMoved3d = false;
+    cam.target = scene.center.slice();
+    cam.dist = scene.radius * 2.6;
+    needDraw = true;
+  });
+  new ResizeObserver(() => needDraw = true).observe(canvas);
+})();
+
+poll();
+</script>
+</body>
+</html>

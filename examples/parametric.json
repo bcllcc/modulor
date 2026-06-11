@@ -1,0 +1,54 @@
+[
+  {"op": "define_param", "name": "bay", "value": 4000},
+  {"op": "define_param", "name": "cols", "value": 5},
+  {"op": "define_param", "name": "rows", "value": 3},
+  {"op": "define_param", "name": "storey", "value": 3500},
+  {"op": "define_param", "name": "floors", "value": 3},
+
+  {"op": "add_level", "name": "L1", "elevation": 0, "height": "storey"},
+  {"op": "add_level", "name": "L2", "elevation": "storey", "height": "storey"},
+  {"op": "add_level", "name": "L3", "elevation": "storey*2", "height": "storey"},
+
+  {"op": "add_material", "name": "concrete", "color": "#c9c5bd", "roughness": 0.85},
+  {"op": "add_material", "name": "glass", "color": "#8fb0c9", "roughness": 0.2, "metallic": 0.5},
+  {"op": "add_material", "name": "alu", "color": "#5a6068", "roughness": 0.4, "metallic": 0.8},
+
+  {"op": "add_grid",
+   "x": {"start": 0, "count": "cols", "spacing": "bay"},
+   "y": {"start": 0, "count": "rows", "spacing": "bay*1.2"}},
+
+  {"op": "add_cylinder", "at": [0, 0, 0], "radius": 180,
+   "height": "storey*floors", "material": "concrete", "tag": "col",
+   "layer": "structure"},
+  {"op": "array", "select": {"tags": ["col"]}, "kind": "grid",
+   "nx": "cols", "ny": "rows", "dx": "bay", "dy": "bay*1.2"},
+
+  {"op": "add_box", "at": [-600, -600, "storey"],
+   "size": ["bay*(cols-1)+1200", "bay*1.2*(rows-1)+1200", 220],
+   "material": "concrete", "tag": "slab", "layer": "structure"},
+  {"op": "copy", "select": {"tags": ["slab"]}, "by": [0, 0, "storey"],
+   "count": "floors-2"},
+
+  {"op": "add_facade", "start": [-600, -600],
+   "end": ["bay*(cols-1)+600", -600], "height": "storey*floors",
+   "spacing": 1900, "mullion_material": "alu", "glass_material": "glass",
+   "tag": "south"},
+
+  {"op": "add_rect", "at": [-600, -600],
+   "width": "bay*(cols-1)+1200", "height": "bay*1.2*(rows-1)+1200",
+   "tag": "plan", "layer": "draft"},
+  {"op": "add_roof", "footprint": {"tags": ["plan"]}, "kind": "gable",
+   "pitch": 22, "overhang": 700, "z": "storey*floors",
+   "thickness": 240, "material": "concrete", "tag": "roof"},
+
+  {"op": "add_stair", "at": ["bay*0.25", "bay*0.3"], "rise": "storey",
+   "direction": 0, "material": "concrete", "tag": "stair"},
+
+  {"op": "add_room", "name": "OFFICE", "level": "L1",
+   "points": [[0, 0], ["bay*2", 0], ["bay*2", "bay*1.2*(rows-1)"],
+              [0, "bay*1.2*(rows-1)"]]},
+  {"op": "add_room", "name": "LAB", "level": "L1",
+   "points": [["bay*2", 0], ["bay*(cols-1)", 0],
+              ["bay*(cols-1)", "bay*1.2*(rows-1)"],
+              ["bay*2", "bay*1.2*(rows-1)"]]}
+]

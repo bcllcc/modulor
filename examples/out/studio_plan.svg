@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-682.25 -5577.25 10059.5 9034.5" width="10059.5mm" height="9034.5mm">
+<g transform="scale(1,-1)">
+<rect x="-682.25" y="-3457.25" width="10059.5" height="9034.5" fill="white"/>
+<g data-layer="walls">
+<path d="M 1000,120 L 120,120 L 120,4880 L 1250,4880 L 1250,5120 L -120,5120 L -120,-120 L 1000,-120 Z M 8120,5120 L 6900,5120 L 6900,4880 L 7880,4880 L 7880,120 L 7100,120 L 7100,-120 L 8120,-120 Z M 5100,4880 L 5100,5120 L 2750,5120 L 2750,4880 Z M 5300,120 L 2000,120 L 2000,-120 L 5300,-120 Z" fill="#1f2430" fill-opacity="0.25" fill-rule="nonzero" stroke="#1f2430" stroke-width="17.8836"/>
+<polyline points="1000,0 1000,1000" stroke="#1f2430" stroke-width="8.9418" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 2000,0 A 1000 1000 0 0 1 1000,1000" stroke="#1f2430" stroke-width="8.9418" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="5300,0 7100,0" stroke="#1f2430" stroke-width="8.9418" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="5300,-120 5300,120" stroke="#1f2430" stroke-width="8.9418" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="7100,-120 7100,120" stroke="#1f2430" stroke-width="8.9418" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="6900,5000 5100,5000" stroke="#1f2430" stroke-width="8.9418" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="6900,5120 6900,4880" stroke="#1f2430" stroke-width="8.9418" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="5100,5120 5100,4880" stroke="#1f2430" stroke-width="8.9418" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="2750,5000 1250,5000" stroke="#1f2430" stroke-width="8.9418" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="2750,5120 2750,4880" stroke="#1f2430" stroke-width="8.9418" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1250,5120 1250,4880" stroke="#1f2430" stroke-width="8.9418" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 5060,5000 L 4940,5000 L 4940,4550 L 5060,4550 Z M 5060,3650 L 4940,3650 L 4940,0 L 5060,0 Z" fill="#1f2430" fill-opacity="0.25" fill-rule="nonzero" stroke="#1f2430" stroke-width="17.8836"/>
+<polyline points="5000,3650 4100,3650" stroke="#1f2430" stroke-width="8.9418" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 5000,4550 A 900 900 0 0 1 4100,3650" stroke="#1f2430" stroke-width="8.9418" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g data-layer="dims">
+<polyline points="0,-180 0,-1725" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="8000,-180 8000,-1725" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="-225,-1500 8225,-1500" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="-95.4594,-1595.4594 95.4594,-1404.5406" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="7904.5406,-1595.4594 8095.4594,-1404.5406" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text transform="translate(4000,-1680) rotate(0) scale(1,-1)" font-size="607.5" font-family="ui-monospace, Consolas, monospace" text-anchor="middle" fill="#7a8699" stroke="none">8000</text>
+<polyline points="0,-96 0,-920" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="5000,-96 5000,-920" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="-120,-800 5120,-800" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="-50.9117,-850.9117 50.9117,-749.0883" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="4949.0883,-850.9117 5050.9117,-749.0883" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text transform="translate(2500,-896) rotate(0) scale(1,-1)" font-size="324" font-family="ui-monospace, Consolas, monospace" text-anchor="middle" fill="#7a8699" stroke="none">5000</text>
+<polyline points="5000,-96 5000,-920" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="8000,-96 8000,-920" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="4880,-800 8120,-800" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="4949.0883,-850.9117 5050.9117,-749.0883" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="7949.0883,-850.9117 8050.9117,-749.0883" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text transform="translate(6500,-896) rotate(0) scale(1,-1)" font-size="324" font-family="ui-monospace, Consolas, monospace" text-anchor="middle" fill="#7a8699" stroke="none">3000</text>
+<polyline points="8096,0 8920,0" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="8096,5000 8920,5000" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="8800,-120 8800,5120" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="8850.9117,-50.9117 8749.0883,50.9117" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="8850.9117,4949.0883 8749.0883,5050.9117" stroke="#7a8699" stroke-width="4.4709" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<text transform="translate(8896,2500) rotate(90) scale(1,-1)" font-size="324" font-family="ui-monospace, Consolas, monospace" text-anchor="middle" fill="#7a8699" stroke="none">5000</text>
+</g>
+<g data-layer="labels">
+<text transform="translate(2000,2400) rotate(0) scale(1,-1)" font-size="405" font-family="ui-monospace, Consolas, monospace" text-anchor="start" fill="#3a4256" stroke="none">LIVING</text>
+<text transform="translate(5900,2400) rotate(0) scale(1,-1)" font-size="405" font-family="ui-monospace, Consolas, monospace" text-anchor="start" fill="#3a4256" stroke="none">BEDROOM</text>
+<text transform="translate(2600,-3000) rotate(0) scale(1,-1)" font-size="540" font-family="ui-monospace, Consolas, monospace" text-anchor="start" fill="#3a4256" stroke="none">STUDIO PLAN</text>
+</g>
+</g></svg>

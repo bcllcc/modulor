@@ -1,0 +1,61 @@
+[
+  {"op": "doc_new", "units": "mm", "name": "studio"},
+  {"op": "add_layer", "name": "walls", "color": "#1f2430", "line_width": 1.6},
+  {"op": "add_layer", "name": "dims", "color": "#7a8699", "line_width": 0.8},
+  {"op": "add_layer", "name": "labels", "color": "#3a4256", "line_width": 1.0},
+
+  {"op": "add_wall",
+   "path": [[0, 0], [8000, 0], [8000, 5000], [0, 5000], [0, 0]],
+   "thickness": 240, "height": 2900, "tag": "exterior", "layer": "walls"},
+
+  {"op": "add_wall", "path": [[5000, 0], [5000, 5000]],
+   "thickness": 120, "height": 2900, "tag": "partition", "layer": "walls"},
+
+  {"op": "add_opening", "wall": {"tags": ["exterior"]}, "along": 1500,
+   "width": 1000, "type": "door"},
+  {"op": "add_opening", "wall": {"tags": ["exterior"]}, "along": 6200,
+   "width": 1800, "type": "window"},
+  {"op": "add_opening", "wall": {"tags": ["exterior"]}, "along": 15000,
+   "width": 1800, "type": "window"},
+  {"op": "add_opening", "wall": {"tags": ["exterior"]}, "along": 19000,
+   "width": 1500, "type": "window"},
+  {"op": "add_opening", "wall": {"tags": ["partition"]}, "along": 4100,
+   "width": 900, "type": "door"},
+
+  {"op": "add_dim", "p1": [0, 0], "p2": [8000, 0], "offset": -1500,
+   "layer": "dims"},
+  {"op": "add_dim", "p1": [0, 0], "p2": [5000, 0], "offset": -800,
+   "layer": "dims"},
+  {"op": "add_dim", "p1": [5000, 0], "p2": [8000, 0], "offset": -800,
+   "layer": "dims"},
+  {"op": "add_dim", "p1": [8000, 0], "p2": [8000, 5000], "offset": -800,
+   "layer": "dims"},
+
+  {"op": "add_text", "at": [2000, 2400], "text": "LIVING", "height": 300,
+   "layer": "labels"},
+  {"op": "add_text", "at": [5900, 2400], "text": "BEDROOM", "height": 300,
+   "layer": "labels"},
+  {"op": "add_text", "at": [2600, -3000], "text": "STUDIO PLAN", "height": 400,
+   "layer": "labels"},
+
+  {"op": "validate"},
+  {"op": "measure", "kind": "area", "select": {"tags": ["exterior"]}},
+
+  {"op": "export", "path": "examples/out/studio_plan.svg"},
+  {"op": "export", "path": "examples/out/studio_plan.dxf"},
+  {"op": "render", "path": "examples/out/studio_plan.png", "mode": "plan",
+   "width": 1400, "height": 1100},
+
+  {"op": "add_material", "name": "shell", "color": "#cfc8bb"},
+  {"op": "update", "select": {"types": ["wall"]}, "material": "shell"},
+  {"op": "add_box", "at": [-120, -120, -150], "size": [8240, 5240, 150],
+   "tag": "slab", "material": "shell", "layer": "model"},
+
+  {"op": "render", "path": "examples/out/studio_iso.png", "mode": "shaded",
+   "camera": "iso", "select": {"types": ["wall", "solid"]},
+   "width": 1400, "height": 1000},
+  {"op": "export", "path": "examples/out/studio.glb",
+   "select": {"types": ["wall", "solid"]}},
+
+  {"op": "doc_info"}
+]
