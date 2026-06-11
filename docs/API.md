@@ -1,6 +1,6 @@
 # Modulor op API
 
-71 ops · contract `modulor-ops/1` · generated from v0.5.0 — do not edit by hand, run `python scripts/api_dump.py`.
+71 ops · contract `modulor-ops/1` · generated from v0.5.1 — do not edit by hand, run `python scripts/api_dump.py`.
 
 `effects`: **doc** mutates the document · **files** writes files, document untouched · **none** pure query.
 
