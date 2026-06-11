@@ -159,6 +159,9 @@ A good session: build → `validate` → `measure` what matters → `render`
 `export` infers from the extension:
 `.svg` `.dxf` (2D drawing: walls, dims, text, true arcs) ·
 `.obj` `.stl` `.glb` (3D meshes with materials; GLB is meters/Y-up) ·
+`.ifc` (**semantic IFC4 BIM model**: walls with real openings, storeys
+from levels, grids, rooms as spaces with area quantities, other solids
+as proxies — opens in Revit/Archicad/model checkers; metres, deterministic GUIDs) ·
 `.png` (rendered image) · `.json` (document copy).
 
 ## 6.5 Parametric design (the document is data + recipe)

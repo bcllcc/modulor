@@ -7,13 +7,17 @@ import os
 from ..errors import CadError
 from . import P, op
 
-FORMATS = (".svg", ".dxf", ".png", ".obj", ".stl", ".glb", ".json")
+FORMATS = (".svg", ".dxf", ".png", ".obj", ".stl", ".glb", ".ifc",
+           ".json")
 
 
 @op("export",
     doc="Export to a file; format from the extension. 2D formats: .svg .dxf "
         "(drawings, dims, walls in plan). 3D formats: .obj .stl .glb "
-        "(solids + walls as meshes). .png renders an image, .json saves a "
+        "(solids + walls as meshes). .ifc exports a semantic IFC4 BIM "
+        "model (walls with openings, storeys from levels, grids, rooms "
+        "as spaces with areas, other solids as proxies) for Revit/"
+        "Archicad/checkers. .png renders an image, .json saves a "
         "document copy.",
     params={
         "path": P.string(req=True, doc=f"output file, one of {FORMATS}"),
@@ -48,6 +52,9 @@ def export(doc, p):
     if ext == ".glb":
         from ..exporters.mesh3d import export_glb
         return _need_solids(export_glb(doc, ids, path))
+    if ext == ".ifc":
+        from ..exporters.ifc import export_ifc
+        return export_ifc(doc, ids, path)
     if ext == ".png":
         return _render(doc, p, ids, "auto")
     if ext == ".json":

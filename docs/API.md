@@ -1,6 +1,6 @@
 # Modulor op API
 
-71 ops · contract `modulor-ops/1` · generated from v0.5.1 — do not edit by hand, run `python scripts/api_dump.py`.
+71 ops · contract `modulor-ops/1` · generated from v0.6.0 — do not edit by hand, run `python scripts/api_dump.py`.
 
 `effects`: **doc** mutates the document · **files** writes files, document untouched · **none** pure query.
 
@@ -732,11 +732,11 @@ Reset the document to an empty state.
 ## export
 
 *effects: files*  
-Export to a file; format from the extension. 2D formats: .svg .dxf (drawings, dims, walls in plan). 3D formats: .obj .stl .glb (solids + walls as meshes). .png renders an image, .json saves a document copy.
+Export to a file; format from the extension. 2D formats: .svg .dxf (drawings, dims, walls in plan). 3D formats: .obj .stl .glb (solids + walls as meshes). .ifc exports a semantic IFC4 BIM model (walls with openings, storeys from levels, grids, rooms as spaces with areas, other solids as proxies) for Revit/Archicad/checkers. .png renders an image, .json saves a document copy.
 
 | param | type | required | default | notes |
 |---|---|---|---|---|
-| `path` | string | yes |  | output file, one of ('.svg', '.dxf', '.png', '.obj', '.stl', '.glb', '.json') |
+| `path` | string | yes |  | output file, one of ('.svg', '.dxf', '.png', '.obj', '.stl', '.glb', '.ifc', '.json') |
 | `select` | select |  | `"all"` | selector: "all", an id like "e3", a list of ids, or {"layers": [...], "types": [...], "tags": [...]} |
 | `width` | integer |  | `1200` | png only |
 | `height` | integer |  | `900` | png only |
