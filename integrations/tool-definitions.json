@@ -1,0 +1,3330 @@
+{
+ "generator": "modulor 0.6.0",
+ "contract": "modulor-ops/1",
+ "usage": "Pick ONE style. coarse: a single modulor_run tool (recommended; smallest prompt overhead). fine: one tool per op. Execute calls by running `modulor run <doc> -` with the commands JSON on stdin, or via the Python API (modulor.Cad).",
+ "coarse": [
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_run",
+    "description": "Run Modulor CAD commands against a document file (2D drafting + 3D modeling; exports DXF/SVG/GLB/STL/IFC; renders PNG). Commands are executed atomically in order; each is {\"op\": <name>, ...params}. Use {\"op\":\"help\",\"name\":<op>} to inspect any op. Available ops — add_arc: Add a circular arc, CCW from start_angle to end_angle (degrees from +X); add_box: Add an axis-aligned box solid; add_circle: Add a circle; add_cylinder: Add a cylinder (or cone, with radius_top) standing on its base; add_dim: Add an aligned linear dimension between two points; add_dim_angular: Angular dimension: measures the CCW angle at `center` from the ray toward p1 to the ray toward p2, drawn as an arc at `radius`; add_dim_radial: Radius dimension on a circle or arc: a leader at `angle` with the text 'R<value>'; add_facade: Curtain-wall facade between two plan points: a mullion grid solid plus a glass pane solid; add_grid: Structural grid: labeled axis lines drawn in plan; add_implicit: Sculpt a solid from a math expression over x, y, z: the solid is where the expression is POSITIVE; add_layer: Create or update a layer; add_level: Define a named building level (storey); add_line: Add a straight line segment; add_material: Create or update a material (used by 3D solids; exported to glTF/OBJ); add_opening: Cut a door or window into a wall; add_polyline: Add a polyline (open or closed); add_rect: Add an axis-aligned rectangle (a closed polyline), optionally rotated; add_roof: Generate a roof solid over a closed footprint: 'flat' slab, 'shed' single slope, or 'gable' double slope with a central ridge; add_room: Declare a room/zone/site: a named program area; add_sphere: Add a sphere; add_spline: Add a smooth curve through the given points (centripetal Catmull-Rom); add_stair: Straight stair flight as a solid; add_surface: Doubly-curved surface slab: z = f(x, y) over a rectangle, given thickness; add_text: Add a text label; add_wall: Add a wall along a centerline path; array: Repeat entities in a grid or around a center (polar); boolean_2d: 2D boolean between closed shapes; boolean_3d: 3D boolean between solids (walls are converted automatically); chamfer: Cut the corners of polylines with straight bevels at the given setback distance (in place); copy: Copy entities, translating each copy by `by` (repeated `count` times); define_param: Declare a design parameter with a default value — sets it only if it does not exist yet; deform: Non-rigid deformation of solids (in place): twist about the vertical axis, taper along the height, or bend along x into an arc; delete: Delete entities; diff: Compare the current model against a saved snapshot: parameter changes, entity additions/removals/modifications, and metric deltas; doc_info: Summary of the document: units, layers, entity counts, bounding box; doc_new: Reset the document to an empty state; export: Export to a file; format from the extension; extrude: Extrude closed 2D shapes vertically into solids (one solid per selected entity); fillet: Round the corners of polylines with arcs of the given radius (in place); find: Spatial query: which entities are at/near a point, or inside a box? Results are sorted by distance; get: Full data of one entity, including geometry; help: Introspect the API: list all ops, or full parameter docs for one op; import_dxf: Import entities from a DXF file (ASCII, R12 through current); list: List entities (id, type, layer, tag and a one-line geometric summary); list_layers: List layers and their properties; loft: Skin a solid through a stack of closed profiles at increasing heights (straight/ruled between sections — add more sections for curvature, or run 'smooth' after); measure: Measure geometry: distance between two points, or length / area / volume / bbox of selected entities; mirror: Mirror entities across the line p1->p2 (solids: across the vertical plane through that line); move: Translate entities by a vector; offset: Offset closed shapes outward (+) or inward (-) by a distance; params: List design parameters, levels and the stored recipe size; program: The area program: every room/zone/site with its level and area, plus totals by kind and by name; project: Project solids/walls to a 2D outline region; recipe_set: Store the command list that generates this model (the design intent); regenerate: Rebuild the model from the stored recipe: geometry is cleared, parameters survive (optionally overridden), every expression is re-evaluated; render: Render a PNG image of the model so it can be inspected visually; restore: Replace the document with a previously saved snapshot; revolve: Revolve closed 2D profiles around the vertical axis through `axis_point` to make solids of revolution; rotate: Rotate entities CCW (degrees); scale: Scale entities about a center point; set_param: Set a design parameter; set_units: Change document units (does NOT rescale existing geometry); shell: Hollow solids into shells of the given wall thickness (in place), by eroding a copy and subtracting it; slice: Horizontal section: cut solids/walls at height z and produce 2D region(s) of the cut; smooth: Smooth solids in place: facet edges flatter than `angle` degrees are rounded into curvature-continuous patches (sharper edges are kept crisp), then the mesh is refined; snapshot: Save a named snapshot of the whole document (cheap insurance before risky boolean/transform sequences); snapshots: List saved snapshots of this document; solidify: Convert walls into plain solid entities (so you can boolean them with other solids); sweep: Sweep a closed profile along a 3D path to make a solid (tubes, ribbons, curved beams); update: Change non-geometric properties of entities: layer, tag, material; validate: Check the document for problems: degenerate entities, broken meshes, openings outside their walls, references to missing materials",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      },
+      "commands": {
+       "type": "array",
+       "description": "ordered op commands",
+       "items": {
+        "type": "object",
+        "properties": {
+         "op": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "op"
+        ]
+       }
+      }
+     },
+     "required": [
+      "doc",
+      "commands"
+     ]
+    }
+   }
+  }
+ ],
+ "fine": [
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_arc",
+    "description": "Add a circular arc, CCW from start_angle to end_angle (degrees from +X). [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "center": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point [x, y] (number or expression string like 'bay*2')"
+      },
+      "radius": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "radius (> 0) (number or expression string like 'bay*2')"
+      },
+      "start_angle": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "degrees (number or expression string like 'bay*2')"
+      },
+      "end_angle": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "degrees (number or expression string like 'bay*2')"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "center",
+      "radius",
+      "start_angle",
+      "end_angle"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_box",
+    "description": "Add an axis-aligned box solid. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "at": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 3,
+       "description": "anchor point (number or expression string like 'bay*2')"
+      },
+      "size": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 3,
+       "description": "[sx, sy, sz] (number or expression string like 'bay*2')"
+      },
+      "anchor": {
+       "type": "string",
+       "description": "'at' is the min corner or the 3D center",
+       "enum": [
+        "corner",
+        "center"
+       ]
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "size"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_circle",
+    "description": "Add a circle. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "center": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point [x, y] (number or expression string like 'bay*2')"
+      },
+      "radius": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "radius (> 0) (number or expression string like 'bay*2')"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "center",
+      "radius"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_cylinder",
+    "description": "Add a cylinder (or cone, with radius_top) standing on its base. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "at": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 3,
+       "description": "center of the base circle (number or expression string like 'bay*2')"
+      },
+      "radius": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "base radius (number or expression string like 'bay*2')"
+      },
+      "height": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "height (> 0) (number or expression string like 'bay*2')"
+      },
+      "radius_top": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "top radius; 0 makes a cone (default: radius) (number or expression string like 'bay*2')"
+      },
+      "segments": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "0 = automatic (number or expression string like 'bay*2')"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "radius",
+      "height"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_dim",
+    "description": "Add an aligned linear dimension between two points. The measured distance is rendered automatically; offset places the dimension line to the left (+) or right (-) of the p1->p2 direction. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "p1": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point [x, y] (number or expression string like 'bay*2')"
+      },
+      "p2": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point [x, y] (number or expression string like 'bay*2')"
+      },
+      "offset": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "distance from measured points (default: 500mm equivalent) (number or expression string like 'bay*2')"
+      },
+      "text": {
+       "type": "string",
+       "description": "override the measured value"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "p1",
+      "p2"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_dim_angular",
+    "description": "Angular dimension: measures the CCW angle at `center` from the ray toward p1 to the ray toward p2, drawn as an arc at `radius`. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "center": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point [x, y] (number or expression string like 'bay*2')"
+      },
+      "p1": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point on the first ray (number or expression string like 'bay*2')"
+      },
+      "p2": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point on the second ray (number or expression string like 'bay*2')"
+      },
+      "radius": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "arc placement radius (default: mean of the two point distances) (number or expression string like 'bay*2')"
+      },
+      "text": {
+       "type": "string",
+       "description": "override the measured value"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "center",
+      "p1",
+      "p2"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_dim_radial",
+    "description": "Radius dimension on a circle or arc: a leader at `angle` with the text 'R<value>'. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "of": {
+       "description": "one circle or arc entity"
+      },
+      "direction": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "leader direction, degrees (number or expression string like 'bay*2')"
+      },
+      "text": {
+       "type": "string",
+       "description": "override the measured value"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "of"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_facade",
+    "description": "Curtain-wall facade between two plan points: a mullion grid solid plus a glass pane solid. Panel sizes come from cols/rows or from target spacing. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "start": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point [x, y] (number or expression string like 'bay*2')"
+      },
+      "end": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point [x, y] (number or expression string like 'bay*2')"
+      },
+      "height": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "facade height (> 0) (number or expression string like 'bay*2')"
+      },
+      "z": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "sill elevation (number or expression string like 'bay*2')"
+      },
+      "cols": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "panel columns (default: by spacing) (number or expression string like 'bay*2')"
+      },
+      "rows": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "panel rows (default: by spacing) (number or expression string like 'bay*2')"
+      },
+      "spacing": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "target panel size (default 1500mm eq.) (number or expression string like 'bay*2')"
+      },
+      "mullion": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "mullion face width (default 60mm eq.) (number or expression string like 'bay*2')"
+      },
+      "depth": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "mullion depth (default 120mm eq.) (number or expression string like 'bay*2')"
+      },
+      "mullion_material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "glass_material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "start",
+      "end",
+      "height"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_grid",
+    "description": "Structural grid: labeled axis lines drawn in plan. Reference intersections anywhere a number is accepted: grid_x('B'), grid_y('3'). Axes can be explicit coordinates or {\"start\", \"count\", \"spacing\"} (spacing may be an expression). [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "x": {
+       "type": "object",
+       "description": "[0, 4000, 8000] or {\"start\": 0, \"count\": 5, \"spacing\": \"bay\"}"
+      },
+      "y": {
+       "type": "object",
+       "description": "same for the y axis"
+      },
+      "x_labels": {
+       "type": "array",
+       "description": "default A, B, C, ..."
+      },
+      "y_labels": {
+       "type": "array",
+       "description": "default 1, 2, 3, ..."
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "x",
+      "y"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_implicit",
+    "description": "Sculpt a solid from a math expression over x, y, z: the solid is where the expression is POSITIVE. The native way to make organic and freeform geometry. Helpers: length(...), smin/smax(a,b,k) for smooth blends, clamp, mix, abs, min, max, trig. Example sphere: '500 - length(x, y, z)'. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "expr": {
+       "type": "string",
+       "description": "scalar field; > 0 is solid"
+      },
+      "bounds": {
+       "type": "object",
+       "description": "{\"min\": [x,y,z], \"max\": [x,y,z]} region to evaluate"
+      },
+      "edge_length": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "mesh resolution (default: max extent/64; smaller = finer = slower) (number or expression string like 'bay*2')"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "expr",
+      "bounds"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_layer",
+    "description": "Create or update a layer. Layers are also auto-created when first referenced by a drawing op. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "layer name"
+      },
+      "color": {
+       "type": "string",
+       "description": "'#rrggbb'"
+      },
+      "line_width": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "display/print line width (number or expression string like 'bay*2')"
+      },
+      "visible": {
+       "type": "boolean",
+       "description": "hidden layers are skipped by render/export"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "name"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_level",
+    "description": "Define a named building level (storey). Reference it anywhere a number is accepted: \"level('L2')\" is its elevation, \"level_top('L2')\" is elevation + height. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "e.g. 'L1', 'roof'"
+      },
+      "elevation": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "level elevation (z) (number or expression string like 'bay*2')"
+      },
+      "height": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "storey height (enables level_top) (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "name",
+      "elevation"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_line",
+    "description": "Add a straight line segment. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "start": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point [x, y] (number or expression string like 'bay*2')"
+      },
+      "end": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point [x, y] (number or expression string like 'bay*2')"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "start",
+      "end"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_material",
+    "description": "Create or update a material (used by 3D solids; exported to glTF/OBJ). [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "material name"
+      },
+      "color": {
+       "type": "string",
+       "description": "'#rrggbb'"
+      },
+      "metallic": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "PBR metallic, 0-1 (number or expression string like 'bay*2')"
+      },
+      "roughness": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "PBR roughness, 0-1 (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "name",
+      "color"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_opening",
+    "description": "Cut a door or window into a wall. Position is the distance along the wall centerline to the opening center. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "wall": {
+       "description": "the wall: id, tag or selector (must match exactly one wall)"
+      },
+      "along": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "distance along the centerline to the opening center (number or expression string like 'bay*2')"
+      },
+      "width": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "opening width (> 0) (number or expression string like 'bay*2')"
+      },
+      "type": {
+       "type": "string",
+       "description": "drawing symbol + default sill/head",
+       "enum": [
+        "door",
+        "window"
+       ]
+      },
+      "sill": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "bottom height (default: door 0, window 900mm eq.) (number or expression string like 'bay*2')"
+      },
+      "head": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "top height (default: door 2100, window 2400mm eq.) (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "wall",
+      "along",
+      "width"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_polyline",
+    "description": "Add a polyline (open or closed). Closed polylines bound an area and can be extruded or used in 2D booleans. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "points": {
+       "type": "array",
+       "items": {
+        "type": "array",
+        "items": {
+         "type": [
+          "number",
+          "string"
+         ]
+        },
+        "minItems": 2,
+        "maxItems": 2
+       },
+       "description": "list of [x, y] points (number or expression string like 'bay*2')"
+      },
+      "closed": {
+       "type": "boolean",
+       "description": "close the loop (bounds an area)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "points"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_rect",
+    "description": "Add an axis-aligned rectangle (a closed polyline), optionally rotated. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "at": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "anchor point [x, y] (number or expression string like 'bay*2')"
+      },
+      "width": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "size along x (> 0) (number or expression string like 'bay*2')"
+      },
+      "height": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "size along y (> 0) (number or expression string like 'bay*2')"
+      },
+      "anchor": {
+       "type": "string",
+       "description": "'at' is the lower-left corner or the center",
+       "enum": [
+        "corner",
+        "center"
+       ]
+      },
+      "rotation": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "degrees CCW about the anchor (number or expression string like 'bay*2')"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "at",
+      "width",
+      "height"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_roof",
+    "description": "Generate a roof solid over a closed footprint: 'flat' slab, 'shed' single slope, or 'gable' double slope with a central ridge. direction sets the ridge/slope orientation in degrees. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "footprint": {
+       "description": "closed 2D shape"
+      },
+      "kind": {
+       "type": "string",
+       "description": "roof shape",
+       "enum": [
+        "flat",
+        "shed",
+        "gable"
+       ]
+      },
+      "pitch": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "slope, degrees (5-75) (number or expression string like 'bay*2')"
+      },
+      "thickness": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "slab thickness (default 200mm eq.) (number or expression string like 'bay*2')"
+      },
+      "overhang": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "eave extension beyond the footprint (number or expression string like 'bay*2')"
+      },
+      "z": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "eave elevation (expressions: \"level_top('L2')\") (number or expression string like 'bay*2')"
+      },
+      "direction": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "ridge axis (gable) or downhill axis (shed), degrees (number or expression string like 'bay*2')"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "footprint"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_room",
+    "description": "Declare a room/zone/site: a named program area. It renders as a boundary + name + live area label in plan, and feeds the 'program' report. Boundary can be points or an existing closed shape. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "room/zone name"
+      },
+      "points": {
+       "type": "array",
+       "items": {
+        "type": "array",
+        "items": {
+         "type": [
+          "number",
+          "string"
+         ]
+        },
+        "minItems": 2,
+        "maxItems": 2
+       },
+       "description": "boundary polygon (or use 'boundary') (number or expression string like 'bay*2')"
+      },
+      "boundary": {
+       "description": "existing closed shape to take the boundary from"
+      },
+      "level": {
+       "type": "string",
+       "description": "level name (for the program report)"
+      },
+      "kind": {
+       "type": "string",
+       "description": "rooms count toward the program area",
+       "enum": [
+        "room",
+        "zone",
+        "site"
+       ]
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "name"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_sphere",
+    "description": "Add a sphere. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "center": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 3,
+       "description": "point [x, y, z] (number or expression string like 'bay*2')"
+      },
+      "radius": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "radius (> 0) (number or expression string like 'bay*2')"
+      },
+      "segments": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "0 = automatic (number or expression string like 'bay*2')"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "center",
+      "radius"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_spline",
+    "description": "Add a smooth curve through the given points (centripetal Catmull-Rom). Closed splines bound an area: they can be extruded, lofted, swept and used in 2D booleans like any closed shape. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "points": {
+       "type": "array",
+       "items": {
+        "type": "array",
+        "items": {
+         "type": [
+          "number",
+          "string"
+         ]
+        },
+        "minItems": 2,
+        "maxItems": 2
+       },
+       "description": "points the curve passes through (number or expression string like 'bay*2')"
+      },
+      "closed": {
+       "type": "boolean",
+       "description": "close the loop (bounds an area)"
+      },
+      "samples": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "curve segments between points (quality vs size) (number or expression string like 'bay*2')"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "points"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_stair",
+    "description": "Straight stair flight as a solid. Riser/tread are computed from the rise using the comfort rule (2R + T = 630mm eq.) and reported back; the flight runs along +X from 'at' before rotation. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "at": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "start of the first riser (number or expression string like 'bay*2')"
+      },
+      "rise": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "total height (e.g. \"level('L2')-level('L1')\") (number or expression string like 'bay*2')"
+      },
+      "width": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "flight width (default 1100mm eq.) (number or expression string like 'bay*2')"
+      },
+      "direction": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "run direction, degrees (number or expression string like 'bay*2')"
+      },
+      "z": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "base elevation (number or expression string like 'bay*2')"
+      },
+      "riser_max": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "max riser height (default 180mm eq.) (number or expression string like 'bay*2')"
+      },
+      "tread": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "tread depth (default from comfort rule) (number or expression string like 'bay*2')"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "at",
+      "rise"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_surface",
+    "description": "Doubly-curved surface slab: z = f(x, y) over a rectangle, given thickness. The freeform roof/canopy tool — write the surface as math, e.g. a vault: '6000 - 0.0004*(x-10000)**2 + 0.1*y'. Helpers: sin/cos/length/smin/smax/clamp/mix. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "expr": {
+       "type": "string",
+       "description": "height field z = f(x, y)"
+      },
+      "bounds": {
+       "type": "object",
+       "description": "{\"min\": [x, y], \"max\": [x, y]}"
+      },
+      "thickness": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "slab thickness (> 0) (number or expression string like 'bay*2')"
+      },
+      "samples": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "resolution across the larger side (16-128) (number or expression string like 'bay*2')"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "expr",
+      "bounds",
+      "thickness"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_text",
+    "description": "Add a text label. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "at": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "baseline-left anchor (number or expression string like 'bay*2')"
+      },
+      "text": {
+       "type": "string",
+       "description": "the label text"
+      },
+      "height": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "cap height in doc units (default: 250mm equivalent) (number or expression string like 'bay*2')"
+      },
+      "rotation": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "degrees CCW (number or expression string like 'bay*2')"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "at",
+      "text"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_wall",
+    "description": "Add a wall along a centerline path. Walls render as double lines in plan and extrude to 3D automatically. Openings (doors/windows) are cut with add_opening. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "array",
+       "items": {
+        "type": "array",
+        "items": {
+         "type": [
+          "number",
+          "string"
+         ]
+        },
+        "minItems": 2,
+        "maxItems": 2
+       },
+       "description": "centerline [[x,y], ...] (number or expression string like 'bay*2')"
+      },
+      "thickness": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "wall thickness (> 0) (number or expression string like 'bay*2')"
+      },
+      "height": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "3D height (default: 3000mm equivalent) (number or expression string like 'bay*2')"
+      },
+      "smooth": {
+       "type": "boolean",
+       "description": "run a Catmull-Rom spline through the path points: curved walls"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "material": {
+       "type": "string",
+       "description": "material for 3D rendering/export"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "path",
+      "thickness"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_array",
+    "description": "Repeat entities in a grid or around a center (polar). The original counts as the first item. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "selector: \"all\", an id like \"e3\", a list of ids, or {\"layers\": [...], \"types\": [...], \"tags\": [...]}"
+      },
+      "kind": {
+       "type": "string",
+       "description": "rectangular lattice or around a center",
+       "enum": [
+        "grid",
+        "polar"
+       ]
+      },
+      "nx": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "grid: columns (number or expression string like 'bay*2')"
+      },
+      "ny": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "grid: rows (number or expression string like 'bay*2')"
+      },
+      "dx": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "grid: column spacing (number or expression string like 'bay*2')"
+      },
+      "dy": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "grid: row spacing (number or expression string like 'bay*2')"
+      },
+      "count": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "polar: total item count (number or expression string like 'bay*2')"
+      },
+      "center": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "polar: rotation center (number or expression string like 'bay*2')"
+      },
+      "angle": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "polar: total angle (degrees) (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select",
+      "kind"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_boolean_2d",
+    "description": "2D boolean between closed shapes. Inputs are consumed unless keep=true; the result is one region entity. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "kind": {
+       "type": "string",
+       "description": "boolean operation",
+       "enum": [
+        "union",
+        "difference",
+        "intersect",
+        "xor"
+       ]
+      },
+      "a": {
+       "description": "first operand(s), unioned together"
+      },
+      "b": {
+       "description": "second operand(s); not needed for plain union"
+      },
+      "keep": {
+       "type": "boolean",
+       "description": "keep input entities"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "kind",
+      "a"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_boolean_3d",
+    "description": "3D boolean between solids (walls are converted automatically). Inputs are consumed unless keep=true; result is one solid. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "kind": {
+       "type": "string",
+       "description": "boolean operation",
+       "enum": [
+        "union",
+        "difference",
+        "intersect"
+       ]
+      },
+      "a": {
+       "description": "first operand(s), unioned together"
+      },
+      "b": {
+       "description": "second operand(s); not needed for plain union"
+      },
+      "keep": {
+       "type": "boolean",
+       "description": "keep input entities"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "kind",
+      "a"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_chamfer",
+    "description": "Cut the corners of polylines with straight bevels at the given setback distance (in place). [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "polyline entities (open or closed)"
+      },
+      "distance": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "setback from each corner (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select",
+      "distance"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_copy",
+    "description": "Copy entities, translating each copy by `by` (repeated `count` times). [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "selector: \"all\", an id like \"e3\", a list of ids, or {\"layers\": [...], \"types\": [...], \"tags\": [...]}"
+      },
+      "by": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 3,
+       "description": "[dx, dy] or [dx, dy, dz] per copy (number or expression string like 'bay*2')"
+      },
+      "count": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "number of copies (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select",
+      "by"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_define_param",
+    "description": "Declare a design parameter with a default value — sets it only if it does not exist yet. Use this inside recipes so `regenerate` overrides are not clobbered. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "parameter name (identifier)"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "default value (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "name",
+      "value"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_deform",
+    "description": "Non-rigid deformation of solids (in place): twist about the vertical axis, taper along the height, or bend along x into an arc. Use refine to subdivide first so curved results look smooth. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "solid entities"
+      },
+      "kind": {
+       "type": "string",
+       "description": "deformation type",
+       "enum": [
+        "twist",
+        "taper",
+        "bend"
+       ]
+      },
+      "amount": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "twist/bend: total degrees; taper: scale factor at the top (e.g. 0.4) (number or expression string like 'bay*2')"
+      },
+      "plane": {
+       "type": "string",
+       "description": "bend only: bend vertically (xz) or in plan (xy)",
+       "enum": [
+        "xz",
+        "xy"
+       ]
+      },
+      "refine": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "mesh subdivision before warping (0 = none) (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select",
+      "kind",
+      "amount"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_delete",
+    "description": "Delete entities. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "selector: \"all\", an id like \"e3\", a list of ids, or {\"layers\": [...], \"types\": [...], \"tags\": [...]}"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_diff",
+    "description": "Compare the current model against a saved snapshot: parameter changes, entity additions/removals/modifications, and metric deltas. The review tool for design options. [effects: none]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "against": {
+       "type": "string",
+       "description": "snapshot name (see 'snapshots')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "against"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_doc_info",
+    "description": "Summary of the document: units, layers, entity counts, bounding box. [effects: none]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_doc_new",
+    "description": "Reset the document to an empty state. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "units": {
+       "type": "string",
+       "description": "document units",
+       "enum": [
+        "mm",
+        "cm",
+        "m",
+        "in",
+        "ft"
+       ]
+      },
+      "name": {
+       "type": "string",
+       "description": "document name"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_export",
+    "description": "Export to a file; format from the extension. 2D formats: .svg .dxf (drawings, dims, walls in plan). 3D formats: .obj .stl .glb (solids + walls as meshes). .ifc exports a semantic IFC4 BIM model (walls with openings, storeys from levels, grids, rooms as spaces with areas, other solids as proxies) for Revit/Archicad/checkers. .png renders an image, .json saves a document copy. [effects: files]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "output file, one of ('.svg', '.dxf', '.png', '.obj', '.stl', '.glb', '.ifc', '.json')"
+      },
+      "select": {
+       "description": "selector: \"all\", an id like \"e3\", a list of ids, or {\"layers\": [...], \"types\": [...], \"tags\": [...]}"
+      },
+      "width": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "png only (number or expression string like 'bay*2')"
+      },
+      "height": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "png only (number or expression string like 'bay*2')"
+      },
+      "camera": {
+       "type": "object",
+       "description": "png only: named view (\"iso\", \"top\", \"front\", ...) or {\"eye\": [x,y,z], \"target\": [x,y,z], \"fov\": 45}"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "path"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_extrude",
+    "description": "Extrude closed 2D shapes vertically into solids (one solid per selected entity). The profile entities are kept unless keep=false. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "closed shapes: circle / closed polyline / region / wall footprint"
+      },
+      "height": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "extrusion height (+Z) (number or expression string like 'bay*2')"
+      },
+      "z": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "base elevation (number or expression string like 'bay*2')"
+      },
+      "twist": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "degrees of twist over the height (number or expression string like 'bay*2')"
+      },
+      "scale_top": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "scale of the top vs the bottom (number or expression string like 'bay*2')"
+      },
+      "divisions": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "vertical subdivisions for twist (number or expression string like 'bay*2')"
+      },
+      "keep": {
+       "type": "boolean",
+       "description": "keep the profile entities"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select",
+      "height"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_fillet",
+    "description": "Round the corners of polylines with arcs of the given radius (in place). Radius is clamped per corner when segments are short. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "polyline entities (open or closed)"
+      },
+      "radius": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "corner arc radius (> 0) (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select",
+      "radius"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_find",
+    "description": "Spatial query: which entities are at/near a point, or inside a box? Results are sorted by distance. The fastest way to rebuild your mental map of a drawing. [effects: none]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "at": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 3,
+       "description": "query point [x, y] or [x, y, z] (number or expression string like 'bay*2')"
+      },
+      "radius": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "with 'at': only entities within this distance (number or expression string like 'bay*2')"
+      },
+      "bbox": {
+       "type": "object",
+       "description": "{\"min\": [x,y(,z)], \"max\": [x,y(,z)]}: only entities whose bounds overlap this box"
+      },
+      "select": {
+       "description": "restrict the search to these entities"
+      },
+      "limit": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "max results returned (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_get",
+    "description": "Full data of one entity, including geometry. [effects: none]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "id": {
+       "type": "string",
+       "description": "entity id, e.g. 'e3'"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "id"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_help",
+    "description": "Introspect the API: list all ops, or full parameter docs for one op. [effects: none]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "op name; omit to list all ops"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_import_dxf",
+    "description": "Import entities from a DXF file (ASCII, R12 through current). Supported: LINE, CIRCLE, ARC, LWPOLYLINE/POLYLINE (with arc bulges), TEXT, MTEXT, SPLINE, ELLIPSE — plus layers with colors. Unsupported entity types are counted in 'skipped', never silently dropped. This is how you take over an existing human drawing. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "input .dxf file"
+      },
+      "scale": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "multiply all coordinates (unit conversion) (number or expression string like 'bay*2')"
+      },
+      "layer_prefix": {
+       "type": "string",
+       "description": "prefix imported layer names, e.g. 'dxf/'"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "path"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_list",
+    "description": "List entities (id, type, layer, tag and a one-line geometric summary). [effects: none]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "selector: \"all\", an id like \"e3\", a list of ids, or {\"layers\": [...], \"types\": [...], \"tags\": [...]}"
+      },
+      "bbox": {
+       "type": "boolean",
+       "description": "include per-entity bounding boxes"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_list_layers",
+    "description": "List layers and their properties. [effects: none]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_loft",
+    "description": "Skin a solid through a stack of closed profiles at increasing heights (straight/ruled between sections — add more sections for curvature, or run 'smooth' after). Profiles may differ in shape: each is resampled to the same point count. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "sections": {
+       "type": "array",
+       "description": "[{\"select\": <selector>, \"z\": height}, ...] bottom to top, single-contour closed shapes"
+      },
+      "samples": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "points per section ring (number or expression string like 'bay*2')"
+      },
+      "divisions": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "smooth interpolation: extra rings between sections, traced with a vertical spline (8-16 makes flowing surfaces; 0 = ruled) (number or expression string like 'bay*2')"
+      },
+      "keep": {
+       "type": "boolean",
+       "description": "keep the section entities"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "sections"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_measure",
+    "description": "Measure geometry: distance between two points, or length / area / volume / bbox of selected entities. [effects: none]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "kind": {
+       "type": "string",
+       "description": "what to measure",
+       "enum": [
+        "distance",
+        "length",
+        "area",
+        "volume",
+        "bbox"
+       ]
+      },
+      "p1": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 3,
+       "description": "distance: first point (number or expression string like 'bay*2')"
+      },
+      "p2": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 3,
+       "description": "distance: second point (number or expression string like 'bay*2')"
+      },
+      "select": {
+       "description": "length/area/volume/bbox: target entities"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "kind"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_mirror",
+    "description": "Mirror entities across the line p1->p2 (solids: across the vertical plane through that line). Set copy=true to keep the original. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "selector: \"all\", an id like \"e3\", a list of ids, or {\"layers\": [...], \"types\": [...], \"tags\": [...]}"
+      },
+      "p1": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point [x, y] (number or expression string like 'bay*2')"
+      },
+      "p2": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point [x, y] (number or expression string like 'bay*2')"
+      },
+      "copy": {
+       "type": "boolean",
+       "description": "keep the original"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select",
+      "p1",
+      "p2"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_move",
+    "description": "Translate entities by a vector. 2D entities ignore dz. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "selector: \"all\", an id like \"e3\", a list of ids, or {\"layers\": [...], \"types\": [...], \"tags\": [...]}"
+      },
+      "by": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 3,
+       "description": "[dx, dy] or [dx, dy, dz] (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select",
+      "by"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_offset",
+    "description": "Offset closed shapes outward (+) or inward (-) by a distance. Produces a region; the source is kept. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "closed shapes (circle/closed polyline/region/wall footprint)"
+      },
+      "delta": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "+ grows, - shrinks (number or expression string like 'bay*2')"
+      },
+      "join": {
+       "type": "string",
+       "description": "corner treatment of the offset contour",
+       "enum": [
+        "round",
+        "miter",
+        "square"
+       ]
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select",
+      "delta"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_params",
+    "description": "List design parameters, levels and the stored recipe size. [effects: none]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_program",
+    "description": "The area program: every room/zone/site with its level and area, plus totals by kind and by name. The brief-checking report. [effects: none]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_project",
+    "description": "Project solids/walls to a 2D outline region. axis 'z' gives the plan footprint (x,y); 'x' the side elevation outline (y,z); 'y' the front elevation outline (x,z). Sources are kept. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "selector: \"all\", an id like \"e3\", a list of ids, or {\"layers\": [...], \"types\": [...], \"tags\": [...]}"
+      },
+      "axis": {
+       "type": "string",
+       "description": "viewing direction",
+       "enum": [
+        "z",
+        "x",
+        "y"
+       ]
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_recipe_set",
+    "description": "Store the command list that generates this model (the design intent). After this, `regenerate` rebuilds the whole model from the recipe — typically after `set_param`. Use `define_param` inside the recipe for defaults. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "commands": {
+       "type": "array",
+       "description": "ordered op commands; expressions in numeric fields are kept live"
+      },
+      "run": {
+       "type": "boolean",
+       "description": "also regenerate from it immediately"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "commands"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_regenerate",
+    "description": "Rebuild the model from the stored recipe: geometry is cleared, parameters survive (optionally overridden), every expression is re-evaluated. This is how a design stays coordinated when a parameter changes. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "params": {
+       "type": "object",
+       "description": "{\"name\": value, ...} parameter overrides applied before rebuilding"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_render",
+    "description": "Render a PNG image of the model so it can be inspected visually. mode 'plan' draws the 2D drawing; 'shaded' draws solids/walls in 3D; 'auto' picks shaded when solids exist. [effects: files]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "path": {
+       "type": "string",
+       "description": "output .png file"
+      },
+      "mode": {
+       "type": "string",
+       "description": "2D drawing or 3D view; auto picks by content",
+       "enum": [
+        "auto",
+        "plan",
+        "shaded"
+       ]
+      },
+      "select": {
+       "description": "selector: \"all\", an id like \"e3\", a list of ids, or {\"layers\": [...], \"types\": [...], \"tags\": [...]}"
+      },
+      "width": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "image width, px (number or expression string like 'bay*2')"
+      },
+      "height": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "image height, px (number or expression string like 'bay*2')"
+      },
+      "camera": {
+       "type": "object",
+       "description": "shaded only: named view (\"iso\", \"iso_left\", \"top\", \"front\", \"right\", ...) or {\"eye\": [x,y,z], \"target\": [x,y,z], \"fov\": 45}"
+      },
+      "labels": {
+       "type": "boolean",
+       "description": "overlay entity ids/tags on the image so you can map what you see back to entities"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "path"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_restore",
+    "description": "Replace the document with a previously saved snapshot. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "snapshot name"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "name"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_revolve",
+    "description": "Revolve closed 2D profiles around the vertical axis through `axis_point` to make solids of revolution. In the profile, x = distance from the axis (must be >= 0 after shifting), y = height (becomes z). [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "closed profile(s)"
+      },
+      "angle": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "sweep angle, degrees (number or expression string like 'bay*2')"
+      },
+      "axis_point": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "2D point the vertical axis passes through (profile is measured from its x) (number or expression string like 'bay*2')"
+      },
+      "segments": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "0 = automatic (number or expression string like 'bay*2')"
+      },
+      "keep": {
+       "type": "boolean",
+       "description": "keep the profile entities"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_rotate",
+    "description": "Rotate entities CCW (degrees). 2D rotation is about `center` in the plane; solids rotate about a vertical axis through `center` unless `axis` is given. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "selector: \"all\", an id like \"e3\", a list of ids, or {\"layers\": [...], \"types\": [...], \"tags\": [...]}"
+      },
+      "angle": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "degrees CCW (number or expression string like 'bay*2')"
+      },
+      "center": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 3,
+       "description": "point [x, y, z] (number or expression string like 'bay*2')"
+      },
+      "axis": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 3,
+       "description": "rotation axis for solids (default [0,0,1]) (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select",
+      "angle"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_scale",
+    "description": "Scale entities about a center point. Pass one factor for uniform scaling or [fx, fy] / [fx, fy, fz]. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "selector: \"all\", an id like \"e3\", a list of ids, or {\"layers\": [...], \"types\": [...], \"tags\": [...]}"
+      },
+      "factor": {
+       "type": "object",
+       "description": "number or [fx, fy] or [fx, fy, fz]"
+      },
+      "center": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 3,
+       "description": "point [x, y, z] (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select",
+      "factor"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_set_param",
+    "description": "Set a design parameter. Any numeric field in any op can reference it by name in an expression: {\"width\": \"bay*2\"}. Combine with `regenerate` to rebuild the model with the new value. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "parameter name (identifier)"
+      },
+      "value": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "new value (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "name",
+      "value"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_set_units",
+    "description": "Change document units (does NOT rescale existing geometry). [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "units": {
+       "type": "string",
+       "description": "new document units",
+       "enum": [
+        "mm",
+        "cm",
+        "m",
+        "in",
+        "ft"
+       ]
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "units"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_shell",
+    "description": "Hollow solids into shells of the given wall thickness (in place), by eroding a copy and subtracting it. Closed shells — combine with boolean_3d or slice to open them. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "solid entities"
+      },
+      "thickness": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "wall thickness (> 0) (number or expression string like 'bay*2')"
+      },
+      "segments": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "erosion sphere quality (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select",
+      "thickness"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_slice",
+    "description": "Horizontal section: cut solids/walls at height z and produce 2D region(s) of the cut. Sources are kept. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "selector: \"all\", an id like \"e3\", a list of ids, or {\"layers\": [...], \"types\": [...], \"tags\": [...]}"
+      },
+      "z": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "section height (number or expression string like 'bay*2')"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "z"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_smooth",
+    "description": "Smooth solids in place: facet edges flatter than `angle` degrees are rounded into curvature-continuous patches (sharper edges are kept crisp), then the mesh is refined. Great after loft/deform. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "solid entities"
+      },
+      "angle": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "edges with a dihedral angle below this get smoothed; above it they stay sharp (number or expression string like 'bay*2')"
+      },
+      "refine": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "subdivision level (2-6 typical) (number or expression string like 'bay*2')"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_snapshot",
+    "description": "Save a named snapshot of the whole document (cheap insurance before risky boolean/transform sequences). [effects: files]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "snapshot name (default: timestamp)"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_snapshots",
+    "description": "List saved snapshots of this document. [effects: none]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_solidify",
+    "description": "Convert walls into plain solid entities (so you can boolean them with other solids). The wall entity is replaced. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "wall entities"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_sweep",
+    "description": "Sweep a closed profile along a 3D path to make a solid (tubes, ribbons, curved beams). The profile is centered on its own centroid and carried along the path with minimal twisting (parallel transport); profile x/y map to the path's normal/binormal. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "profile": {
+       "description": "one closed single-contour shape"
+      },
+      "path": {
+       "type": "array",
+       "description": "[[x,y,z], ...] (open; >= 2 points)"
+      },
+      "smooth": {
+       "type": "boolean",
+       "description": "spline the path through its points"
+      },
+      "twist": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "degrees of twist over the path (number or expression string like 'bay*2')"
+      },
+      "scale_end": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "profile scale at the far end (number or expression string like 'bay*2')"
+      },
+      "samples": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "points around the profile (number or expression string like 'bay*2')"
+      },
+      "keep": {
+       "type": "boolean",
+       "description": "keep the profile entity"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "profile",
+      "path"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_update",
+    "description": "Change non-geometric properties of entities: layer, tag, material. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "selector: \"all\", an id like \"e3\", a list of ids, or {\"layers\": [...], \"types\": [...], \"tags\": [...]}"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (solids/walls)"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_validate",
+    "description": "Check the document for problems: degenerate entities, broken meshes, openings outside their walls, references to missing materials. [effects: none]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc"
+     ]
+    }
+   }
+  }
+ ]
+}

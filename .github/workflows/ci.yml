@@ -25,3 +25,4 @@ jobs:
           modulor run out/studio.json examples/floorplan.json
           modulor run out/bracket.json examples/bracket.json
           modulor run out/zaha.json examples/zaha.json
+          modulor run out/urban.json examples/urban.json

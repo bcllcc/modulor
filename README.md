@@ -115,6 +115,8 @@ MCP 客户端配置（如 Claude Code）：
 {"mcpServers": {"modulor": {"command": "modulor", "args": ["mcp"]}}}
 ```
 
+**接入你的 Agent**：[integrations/](integrations/) 提供即插即用包——Claude Code skill、Cursor 规则、Codex AGENTS 片段、OpenAI 兼容工具定义（GPT/Kimi/通义/DeepSeek 直接加载）、LangChain/AutoGen/CrewAI 集成、[中文接入说明](integrations/zh-cn.md)、以及 **8 个 CI 实测的命令配方**（[COOKBOOK](integrations/COOKBOOK.md)）。
+
 ## 示例
 
 `modulor run out\studio.json examples\floorplan.json` —— 户型图：
@@ -143,6 +145,10 @@ MCP 客户端配置（如 Claude Code）：
 | bay=4000 · 3 层 | bay=5000 · 4 层（regenerate 之后） |
 |---|---|
 | ![bay 4000](examples/out/param_bay4000.png) | ![bay 5000](examples/out/param_bay5000.png) |
+
+| 城市体块（分区/裙房塔楼/扭转地标） |
+|---|
+| ![urban](examples/out/urban_iso.png) |
 
 规模参考（scripts/bench.py，20 层塔楼 401 条命令）：构建 0.08s、
 文档 0.04MB（墙体参数化存储）、着色渲染 2.2s、GLB 导出 0.05s。

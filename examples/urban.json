@@ -1,0 +1,63 @@
+[
+  {"op": "doc_new", "units": "m", "name": "urban_block"},
+  {"op": "add_material", "name": "massing", "color": "#d8d4cc", "roughness": 0.8},
+  {"op": "add_material", "name": "landmark", "color": "#9db8cc", "roughness": 0.3, "metallic": 0.4},
+  {"op": "add_material", "name": "ground", "color": "#c4c8c2", "roughness": 0.95},
+
+  {"op": "define_param", "name": "podium_h", "value": 18},
+  {"op": "define_param", "name": "floor_h", "value": 3.6},
+
+  {"op": "add_box", "at": [-20, -20, -0.5], "size": [240, 180, 0.5],
+   "material": "ground", "tag": "site"},
+
+  {"op": "add_room", "name": "BLOCK A", "kind": "zone",
+   "points": [[0, 0], [90, 0], [90, 60], [0, 60]]},
+  {"op": "add_room", "name": "BLOCK B", "kind": "zone",
+   "points": [[110, 0], [200, 0], [200, 60], [110, 60]]},
+  {"op": "add_room", "name": "PARK", "kind": "zone",
+   "points": [[0, 80], [110, 80], [110, 140], [0, 140]]},
+  {"op": "add_room", "name": "BLOCK C", "kind": "zone",
+   "points": [[130, 80], [200, 80], [200, 140], [130, 140]]},
+
+  {"op": "add_box", "at": [5, 5, 0], "size": [80, 50, "podium_h"],
+   "material": "massing", "tag": "podium-a"},
+  {"op": "add_box", "at": [12, 12, "podium_h"], "size": [24, 24, "floor_h*12"],
+   "material": "massing", "tag": "tower-a1"},
+  {"op": "add_box", "at": [52, 18, "podium_h"], "size": [22, 22, "floor_h*18"],
+   "material": "massing", "tag": "tower-a2"},
+
+  {"op": "add_box", "at": [115, 5, 0], "size": [80, 50, "podium_h*0.6"],
+   "material": "massing", "tag": "podium-b"},
+  {"op": "add_box", "at": [124, 14, "podium_h*0.6"],
+   "size": [20, 30, "floor_h*9"], "material": "massing", "tag": "tower-b1"},
+  {"op": "add_box", "at": [160, 12, "podium_h*0.6"],
+   "size": [26, 20, "floor_h*24"], "material": "massing", "tag": "tower-b2"},
+
+  {"op": "add_box", "at": [135, 85, 0], "size": [60, 50, 6],
+   "material": "massing", "tag": "podium-c"},
+  {"op": "add_spline", "closed": true, "tag": "lm0",
+   "points": [[14, 0], [0, 10], [-14, 0], [0, -10]]},
+  {"op": "add_circle", "center": [2, 1], "radius": 6, "tag": "lm1"},
+  {"op": "loft", "sections": [{"select": {"tags": ["lm0"]}, "z": 6},
+                              {"select": {"tags": ["lm1"]}, "z": "6+floor_h*30"}],
+   "samples": 72, "divisions": 10, "keep": false,
+   "material": "landmark", "tag": "landmark"},
+  {"op": "move", "select": {"tags": ["landmark"]}, "by": [165, 110, 0]},
+  {"op": "deform", "select": {"tags": ["landmark"]}, "kind": "twist",
+   "amount": 35, "refine": 0},
+
+  {"op": "add_cylinder", "at": [30, 110, 0], "radius": 1.2, "height": 8,
+   "material": "massing", "tag": "tree"},
+  {"op": "array", "select": {"tags": ["tree"]}, "kind": "grid",
+   "nx": 5, "ny": 3, "dx": 18, "dy": 22},
+
+  {"op": "program"},
+  {"op": "measure", "kind": "volume", "select": {"types": ["solid"]}},
+  {"op": "validate"},
+
+  {"op": "render", "path": "examples/out/urban_iso.png", "mode": "shaded",
+   "camera": {"eye": [330, -200, 200], "target": [100, 70, 25]},
+   "width": 1500, "height": 1000},
+  {"op": "export", "path": "examples/out/urban.glb"},
+  {"op": "doc_info"}
+]

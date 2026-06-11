@@ -1,0 +1,6 @@
+# Smithery registry configuration (https://smithery.ai)
+startCommand:
+  type: stdio
+  configSchema: {}
+  commandFunction: |-
+    (config) => ({ command: 'modulor', args: ['mcp'] })

@@ -1,0 +1,26 @@
+---
+description: Modulor CAD - 2D drafting and 3D modeling for agents. Apply when drawing plans, modeling buildings/parts, exporting DXF/SVG/STL/GLB/IFC, or importing DXF.
+alwaysApply: false
+---
+
+# Working with Modulor (agent-native CAD)
+
+- Install once: `pip install modulor`. One document = one `.json` file.
+- Execute JSON command batches: `modulor run model.json script.json`
+  (or `-` for stdin). Batches are atomic; errors are structured JSON with
+  a `hint` field — read it and resend the fixed batch.
+- Discover the API at runtime, never guess: `modulor ops` lists all 71
+  ops; `modulor ops add_wall` shows params, defaults and an example.
+- Verify visually and numerically after building:
+  `{"op":"render","path":"check.png","labels":true}` then look at the
+  image; `{"op":"measure",...}`, `{"op":"validate"}`.
+- Prefer tags over ids in selectors: create with `"tag":"plate"`, select
+  with `{"tags":["plate"]}`.
+- Numeric params accept expressions: `"bay*3"`, `"level_top('L2')"`,
+  `"grid_x('B')"` — combine with `recipe_set` + `regenerate` for
+  parametric models.
+- Conventions: Z up, degrees CCW, mm by default; closed shapes can be
+  extruded/lofted/swept; booleans consume inputs unless `keep:true`.
+- Exports by extension: .dxf .svg (drawings) / .glb .stl .obj (meshes) /
+  .ifc (semantic BIM: walls with openings, storeys, grids, spaces).
+- Import existing drawings: `{"op":"import_dxf","path":"plan.dxf"}`.
