@@ -53,6 +53,11 @@ Standard（规格，供第三方实现）与 Core（参考实现，canonical 而
 + [docs/document.schema.json](docs/document.schema.json)（JSON Schema），
 每份示例文档都在 CI 里对着 schema 验证。
 
+**与主流 CAD 的互操作是契约**（[docs/INTEROP.md](docs/INTEROP.md)）：
+DXF 导出为 R2000 原生对象（ELLIPSE/SPLINE/HATCH/关联 DIMENSION/
+BLOCK+INSERT），在 AutoCAD 里直接可编辑；导入保留块结构；每个导出文件
+在 CI 里由 ezdxf（DXF）与 ifcopenshell（IFC4）做语义级校验。
+
 - **参数化（文档 = 数据 + 配方）**：任何数值字段接受表达式
   （`"bay*3"`、`"level_top('L2')"`、`"grid_x('B')"`）；`recipe_set` 把生成
   命令存进文档作为**设计意图**，`set_param` + `regenerate` 一条命令全模型

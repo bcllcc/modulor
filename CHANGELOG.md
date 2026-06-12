@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.0.0rc3 — 2026-06-13
+
+**Interoperability is now a contract** (RFC #2, accepted):
+docs/INTEROP.md states per-format fidelity guarantees, enforced in CI.
+
+- DXF writer rewritten: R12 → **R2000 (AC1015)**, semantic output —
+  ellipse → ELLIPSE, spline → SPLINE (fit points), hatch → HATCH
+  (user-defined pattern / solid), dims → associative DIMENSION with
+  rendered `*D` blocks, leader → LEADER, polyline → LWPOLYLINE,
+  region/wall footprints → solid HATCH + boundary; `$INSUNITS` from
+  document units. ezdxf recover + audit: zero errors, zero fixes.
+- import_dxf: named blocks become **document blocks + instances**
+  (new `blocks` param, default `"native"`; `"explode"` restores flat
+  copies). Non-uniform/mirrored INSERTs still expand, with a warning.
+  Full ELLIPSEs import as native ellipses; LEADER now imported.
+- IFC: block instances export as their expanded children with
+  deterministic GUIDs (walls stay IfcWall, solids stay proxies).
+- ezdxf joins the dev extras as the DXF referee in CI (test-only,
+  runtime dependencies remain numpy + manifold3d).
+
 ## 1.0.0rc2 — 2026-06-12
 
 **The drafting/modeling baseline is complete** (RFC #1, accepted): six

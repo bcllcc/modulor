@@ -938,15 +938,16 @@ Introspect the API: list all ops, or full parameter docs for one op.
 ## import_dxf
 
 *effects: doc*  
-Import entities from a DXF file (ASCII, R12 through current). Supported: LINE, CIRCLE, ARC, LWPOLYLINE/POLYLINE (with arc bulges), TEXT, MTEXT, SPLINE, ELLIPSE — plus layers with colors. Unsupported entity types are counted in 'skipped', never silently dropped. This is how you take over an existing human drawing.
+Import entities from a DXF file (ASCII, R12 through current). Supported: LINE, CIRCLE, ARC, LWPOLYLINE/POLYLINE (with arc bulges), TEXT, MTEXT, SPLINE, ELLIPSE, LEADER, HATCH, DIMENSION, INSERT — plus layers with colors. Named blocks become document blocks with instance entities (semantic preservation); set blocks='explode' for flat copies. Unsupported entity types are counted in 'skipped', never silently dropped. This is how you take over an existing human drawing.
 
 | param | type | required | default | notes |
 |---|---|---|---|---|
 | `path` | string | yes |  | input .dxf file |
 | `scale` | number |  | `1.0` | multiply all coordinates (unit conversion) |
 | `layer_prefix` | string |  | `""` | prefix imported layer names, e.g. 'dxf/' |
+| `blocks` | string |  | `"native"` | map INSERT to block instances, or expand to flat entity copies one of ['native', 'explode'] |
 
-**returns** `{created: [ids], imported: {TYPE: n}, skipped: {TYPE: n}, layers, dxf_units?, warnings?}`
+**returns** `{created: [ids], imported: {TYPE: n}, skipped: {TYPE: n}, layers, blocks?, dxf_units?, warnings?}`
 
 ```json
 {"op": "import_dxf", "path": "site_plan.dxf"}

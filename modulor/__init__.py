@@ -18,7 +18,7 @@ from .document import Document
 from .engine import BatchError, execute, run_batch
 from .errors import CadError
 
-__version__ = "1.0.0rc2"
+__version__ = "1.0.0rc3"
 __all__ = ["Cad", "Document", "CadError", "BatchError",
            "execute", "run_batch", "__version__"]
 

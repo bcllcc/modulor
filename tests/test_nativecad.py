@@ -225,7 +225,7 @@ def test_exports(tmp_path):
     dxf = str(tmp_path / "t.dxf")
     cad("export", path=dxf)
     txt = open(dxf, encoding="ascii").read()
-    assert "AC1009" in txt and "EOF" in txt
+    assert "AC1015" in txt and "EOF" in txt
 
     stl = str(tmp_path / "t.stl")
     cad("export", path=stl)
@@ -399,7 +399,7 @@ def test_dxf_roundtrip(tmp_path):
     cad2 = Cad(units="mm")
     r = cad2("import_dxf", path=dxf)
     assert r["imported"] == {"LINE": 1, "CIRCLE": 1, "ARC": 1,
-                             "POLYLINE": 1, "TEXT": 1}
+                             "LWPOLYLINE": 1, "TEXT": 1}
     assert r["skipped"] == {}
     assert "frames" in cad2("doc_info")["layers"]
     got = cad2("get", id=r["created"][1])["entity"]

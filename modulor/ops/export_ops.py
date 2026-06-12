@@ -68,19 +68,25 @@ def export(doc, p):
 @op("import_dxf",
     doc="Import entities from a DXF file (ASCII, R12 through current). "
         "Supported: LINE, CIRCLE, ARC, LWPOLYLINE/POLYLINE (with arc "
-        "bulges), TEXT, MTEXT, SPLINE, ELLIPSE — plus layers with colors. "
-        "Unsupported entity types are counted in 'skipped', never silently "
-        "dropped. This is how you take over an existing human drawing.",
+        "bulges), TEXT, MTEXT, SPLINE, ELLIPSE, LEADER, HATCH, DIMENSION, "
+        "INSERT — plus layers with colors. Named blocks become document "
+        "blocks with instance entities (semantic preservation); set "
+        "blocks='explode' for flat copies. Unsupported entity types are "
+        "counted in 'skipped', never silently dropped. This is how you "
+        "take over an existing human drawing.",
     params={
         "path": P.string(req=True, doc="input .dxf file"),
         "scale": P.number(default=1.0,
                           doc="multiply all coordinates (unit conversion)"),
         "layer_prefix": P.string(default="",
                                  doc="prefix imported layer names, e.g. 'dxf/'"),
+        "blocks": P.enum(["native", "explode"], default="native",
+                         doc="map INSERT to block instances, or expand "
+                             "to flat entity copies"),
     },
     example={"op": "import_dxf", "path": "site_plan.dxf"},
     returns="{created: [ids], imported: {TYPE: n}, skipped: {TYPE: n}, "
-            "layers, dxf_units?, warnings?}")
+            "layers, blocks?, dxf_units?, warnings?}")
 def import_dxf_op(doc, p):
     import os
     if not os.path.exists(p["path"]):
@@ -88,7 +94,8 @@ def import_dxf_op(doc, p):
     if p["scale"] <= 0:
         raise CadError("bad_param", "scale must be positive")
     from ..importers.dxf import import_dxf
-    return import_dxf(doc, p["path"], p["scale"], p["layer_prefix"])
+    return import_dxf(doc, p["path"], p["scale"], p["layer_prefix"],
+                      blocks=p["blocks"])
 
 
 @op("render",

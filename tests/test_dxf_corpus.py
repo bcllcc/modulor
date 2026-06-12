@@ -68,13 +68,15 @@ def test_corpus_aggregate_yield():
         if r["created"]:
             files_ok += 1
             entities += len(r["created"])
-    # Locked to the current importer's real-world yield (39/52, 1514
-    # entities). The 13 zero-yield files are all legitimate: header/codepage
-    # structure files with no entities at all, deliberately-broken layout
-    # test files, ACIS 3DSOLIDs (binary blobs) and ACAD_TABLEs — every one
-    # honestly counted in `skipped`. If this assertion fails, an importer
+    # Locked to the current importer's real-world yield (39/52). The 13
+    # zero-yield files are all legitimate: header/codepage structure files
+    # with no entities at all, deliberately-broken layout test files, ACIS
+    # 3DSOLIDs (binary blobs) and ACAD_TABLEs — every one honestly counted
+    # in `skipped`. The entity floor dropped from 1400 when block-preserving
+    # import landed (RFC #2): one INSERT now yields one instance entity
+    # instead of its expanded copies. If these assertions fail, an importer
     # change regressed against the real world.
     assert files_ok >= 38, \
         f"only {files_ok}/{len(CORPUS)} files yielded entities; " \
         f"rejected: {rejected[:10]}"
-    assert entities >= 1400, f"corpus yielded only {entities} entities"
+    assert entities >= 1180, f"corpus yielded only {entities} entities"

@@ -231,8 +231,18 @@ def export_ifc(doc, ids, path: str) -> dict:
     def count(k):
         counts[k] = counts.get(k, 0) + 1
 
+    # block instances export as their expanded children (deterministic
+    # child ids keep the GUIDs stable across exports)
+    records: list[tuple[str, dict]] = []
     for eid in ids:
         ent = doc.entities[eid]
+        if ent["type"] == "instance":
+            for k, child in enumerate(shapes.expand_instance(doc, ent)):
+                records.append((f"{eid}.{k}", child))
+        else:
+            records.append((eid, ent))
+
+    for eid, ent in records:
         t = ent["type"]
         label = _str(ent.get("tag") or eid)
 
@@ -274,7 +284,7 @@ def export_ifc(doc, ids, path: str) -> dict:
                 count("IfcOpeningElement")
 
         elif t == "solid":
-            box = shapes.entity_bbox(doc, eid)
+            box = shapes.ent_bbox(doc, ent)
             zmin = float(box.min[2]) if not box.empty else 0.0
             _, _, st = storey_for(zmin)
             rep = tessellated(ent)

@@ -66,9 +66,9 @@ def read_pairs(path: str):
 
 
 def import_dxf(doc, path: str, scale: float = 1.0,
-               layer_prefix: str = "") -> dict:
+               layer_prefix: str = "", blocks: str = "native") -> dict:
     pairs = read_pairs(path)
-    ctx = _Ctx(doc, scale, layer_prefix)
+    ctx = _Ctx(doc, scale, layer_prefix, blocks_mode=blocks)
 
     # ---- header units + layer table colors
     layer_colors: dict[str, str] = {}
@@ -110,6 +110,9 @@ def import_dxf(doc, path: str, scale: float = 1.0,
            "skipped": ctx.skipped,
            "layers": sorted({doc.entities[e]["layer"] for e in ctx.created
                              if e in doc.entities})}
+    defined = sorted(v for v in ctx.defined_blocks.values() if v)
+    if defined:
+        out["blocks"] = defined
     if ctx.insunits:
         out["dxf_units"] = ctx.insunits
         if ctx.insunits != doc.units and scale == 1.0:
@@ -222,11 +225,14 @@ def _split_sections(pairs):
 class _Ctx:
     """Conversion state; block expansion recurses through it."""
 
-    def __init__(self, doc, scale: float, layer_prefix: str):
+    def __init__(self, doc, scale: float, layer_prefix: str,
+                 blocks_mode: str = "native"):
         self.doc = doc
         self.scale = scale
         self.prefix = layer_prefix
         self.blocks: dict[str, dict] = {}
+        self.blocks_mode = blocks_mode      # "native" | "explode"
+        self.defined_blocks: dict[str, str] = {}  # dxf name -> doc block name
         self.imported: dict[str, int] = {}
         self.skipped: dict[str, int] = {}
         self.created: list[str] = []
@@ -298,11 +304,31 @@ class _Ctx:
             return self._add("spline", {"points": pts, "closed": closed,
                                         "samples": 12}, codes)
         if etype == "ELLIPSE":
-            pts, closed = _ellipse_points(codes, s)
+            t0 = _num(codes, 41, 0.0)
+            t1 = _num(codes, 42, math.tau)
+            span = (t1 - t0) % math.tau
+            if span < 1e-4 or span > math.tau - 1e-4:  # full ellipse: native
+                mx = float(_first(codes, 11)) * s
+                my = float(_first(codes, 21)) * s
+                major = math.hypot(mx, my)
+                ratio = _num(codes, 40)
+                if major > 0 and ratio > 0:
+                    return self._add("ellipse", {
+                        "center": _pt(codes, 10, 20, s),
+                        "rx": major, "ry": major * ratio,
+                        "rotation": math.degrees(math.atan2(my, mx))},
+                        codes)
+            pts, closed = _ellipse_points(codes, s)  # elliptical arc
             return self._add("polyline", {"points": pts, "closed": closed},
                              codes)
         if etype == "INSERT":
             return self._insert(codes, depth)
+        if etype == "LEADER":
+            pts = _pt_list(codes, 10, 20, s)
+            if len(pts) < 2:
+                return []
+            return self._add("polyline", {"points": pts, "closed": False},
+                             codes)
         if etype == "DIMENSION":
             name = _first(codes, 2, "")
             if name and name in self.blocks:
@@ -336,6 +362,28 @@ class _Ctx:
         rows = max(1, int(_num(codes, 71, 1)))
         dx = _num(codes, 44, 0.0) * s
         dy = _num(codes, 45, 0.0) * s
+
+        # semantic path: a uniformly scaled reference to a named block
+        # becomes a native instance; anything an instance cannot express
+        # (non-uniform or mirrored scale) falls back to expansion
+        if (self.blocks_mode == "native" and not name.startswith("*")
+                and abs(sx - sy) < 1e-9 and sx > 0):
+            doc_name = self._ensure_block(name, depth)
+            if doc_name is not None:
+                ids = []
+                cr, sr = _cos_sin(rot)
+                for r_i in range(rows):
+                    for c_i in range(cols):
+                        ox, oy = c_i * dx * sx, r_i * dy * sy
+                        at = [ins[0] + ox * cr - oy * sr,
+                              ins[1] + ox * sr + oy * cr]
+                        ids.append(self.doc.add_entity(
+                            "instance",
+                            {"block": doc_name, "at": at, "rotation": rot,
+                             "scale": sx},
+                            layer=self.prefix + _first(codes, 8, "0")))
+                return ids
+
         ids = []
         for r_i in range(rows):
             for c_i in range(cols):
@@ -349,6 +397,43 @@ class _Ctx:
                     self.warn("INSERT expansion exceeded the entity budget")
                     return ids
         return ids
+
+    def _ensure_block(self, name, depth):
+        """Convert a DXF block definition into a document block (once).
+        Returns the document block name, or None if conversion failed."""
+        if name in self.defined_blocks:
+            return self.defined_blocks[name]
+        block = self.blocks[name]
+        # convert records into the document, then detach them into the
+        # definition; nested INSERTs become nested instances recursively
+        ids: list[str] = []
+        for etype, codes, raw in block["records"]:
+            try:
+                sub = self._convert(etype, codes, raw, depth + 1)
+            except (KeyError, ValueError, IndexError) as e:
+                self.warn(f"block {name!r}/{etype}: skipped ({e})")
+                continue
+            if sub:
+                ids.extend(sub)
+        entities = [self.doc.entities.pop(eid) for eid in ids
+                    if eid in self.doc.entities]
+        if not entities:
+            self.warn(f"block {name!r} is empty after conversion; "
+                      "references are expanded instead")
+            self.defined_blocks[name] = None
+            return None
+        doc_name = name.replace("/", "_")
+        k = 2
+        while doc_name in self.doc.blocks:
+            doc_name = f"{name.replace('/', '_')}~{k}"
+            k += 1
+        base = block["base"]
+        self.doc.blocks[doc_name] = {
+            "base": [base[0] * self.scale, base[1] * self.scale],
+            "entities": entities,
+        }
+        self.defined_blocks[name] = doc_name
+        return doc_name
 
     def _instantiate(self, name, m, depth) -> list[str]:
         """Create one transformed copy of a block's entities."""
@@ -499,6 +584,11 @@ def _f(v) -> float:
     return float(v)
 
 
+def _cos_sin(deg: float) -> tuple[float, float]:
+    a = math.radians(deg)
+    return math.cos(a), math.sin(a)
+
+
 def _first(codes: dict, code: int, default=None):
     vals = codes.get(code)
     if not vals:
@@ -570,7 +660,8 @@ def _ellipse_points(codes: dict, s: float):
     ratio = _num(codes, 40)
     t0 = _num(codes, 41, 0.0)
     t1 = _num(codes, 42, math.tau)
-    closed = abs((t1 - t0) % math.tau) < 1e-6
+    span = (t1 - t0) % math.tau
+    closed = span < 1e-4 or span > math.tau - 1e-4
     major = math.hypot(mx, my)
     ang = math.atan2(my, mx)
     n = 48

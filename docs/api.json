@@ -1266,6 +1266,14 @@
   "import_dxf": {
    "effects": "doc",
    "params": {
+    "blocks": {
+     "default": "native",
+     "enum": [
+      "native",
+      "explode"
+     ],
+     "type": "string"
+    },
     "layer_prefix": {
      "default": "",
      "type": "string"
@@ -1279,7 +1287,7 @@
      "type": "number"
     }
    },
-   "returns": "{created: [ids], imported: {TYPE: n}, skipped: {TYPE: n}, layers, dxf_units?, warnings?}"
+   "returns": "{created: [ids], imported: {TYPE: n}, skipped: {TYPE: n}, layers, blocks?, dxf_units?, warnings?}"
   },
   "insert_block": {
    "effects": "doc",

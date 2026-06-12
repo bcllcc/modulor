@@ -2537,7 +2537,7 @@
    "type": "function",
    "function": {
     "name": "modulor_import_dxf",
-    "description": "Import entities from a DXF file (ASCII, R12 through current). Supported: LINE, CIRCLE, ARC, LWPOLYLINE/POLYLINE (with arc bulges), TEXT, MTEXT, SPLINE, ELLIPSE — plus layers with colors. Unsupported entity types are counted in 'skipped', never silently dropped. This is how you take over an existing human drawing. [effects: doc]",
+    "description": "Import entities from a DXF file (ASCII, R12 through current). Supported: LINE, CIRCLE, ARC, LWPOLYLINE/POLYLINE (with arc bulges), TEXT, MTEXT, SPLINE, ELLIPSE, LEADER, HATCH, DIMENSION, INSERT — plus layers with colors. Named blocks become document blocks with instance entities (semantic preservation); set blocks='explode' for flat copies. Unsupported entity types are counted in 'skipped', never silently dropped. This is how you take over an existing human drawing. [effects: doc]",
     "parameters": {
      "type": "object",
      "properties": {
@@ -2555,6 +2555,14 @@
       "layer_prefix": {
        "type": "string",
        "description": "prefix imported layer names, e.g. 'dxf/'"
+      },
+      "blocks": {
+       "type": "string",
+       "description": "map INSERT to block instances, or expand to flat entity copies",
+       "enum": [
+        "native",
+        "explode"
+       ]
       },
       "doc": {
        "type": "string",
