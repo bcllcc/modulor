@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "modulor": {
+      "command": "modulor",
+      "args": ["mcp"]
+    }
+  }
+}

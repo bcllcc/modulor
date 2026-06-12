@@ -1,0 +1,2 @@
+modulor>=0.6
+crewai>=0.80

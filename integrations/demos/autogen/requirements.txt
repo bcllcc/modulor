@@ -1,0 +1,3 @@
+modulor>=0.6
+autogen-agentchat>=0.4
+autogen-ext[openai]>=0.4
