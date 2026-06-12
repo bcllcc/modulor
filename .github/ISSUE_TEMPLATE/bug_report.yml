@@ -1,0 +1,33 @@
+name: Bug report
+description: Something behaved wrongly (crash, wrong geometry, contract violation)
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Modulor version
+      description: "`python -c \"import modulor; print(modulor.__version__)\"`"
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal command batch that reproduces it
+      description: A JSON op batch we can run with `modulor run doc.json -`.
+        Smaller is better; attach the document file if state matters.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual
+      description: Include the full JSON error if one was returned. A raw
+        Python traceback is itself a bug — paste it whole.
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: OS / Python
+      placeholder: "Windows 11 / Python 3.13"

@@ -41,22 +41,37 @@ definition a change to the Standard, and follows the rules below.
 
 ## 2. Versioning and compatibility
 
-- Core follows **semver**. Pre-1.0: breaking changes are allowed but
-  always recorded in the contract (`scripts/api_dump.py`, committed
-  together with the code). From 1.0: breaking op/format changes only in
-  major versions, with deprecation first.
+**The op surface was declared 1.0-rc on 2026-06-12** (71 core ops,
+docs/api.json). From that point:
+
+- breaking changes to ops, the document format or the error registry
+  require an **accepted RFC** (see §3) and ship only in a major version,
+  preceded by a deprecation in a minor version;
+- additive changes (new optional params, new ops, new optional format
+  fields, new error codes) also pass through an RFC when they extend the
+  Standard, but may ship in minor versions;
+- Core follows **semver**; the contract (`scripts/api_dump.py` output)
+  is regenerated and committed together with any interface change.
 - The document format evolves additively within `modulor/1` (new optional
   fields, new entity types). Field meaning changes require `modulor/2`
   plus a migration path. Readers must ignore unknown optional fields and
   may skip unknown entity types — counting them, never silently mutating.
 - Error codes are a closed registry; additions are contract changes.
 
-## 3. Change process
+## 3. Change process (RFC)
 
-- Routine changes: PR + the contract test gate (interface drift fails CI).
-- Standard-level changes (new ops, format fields, error codes, law
-  changes): open an issue tagged `rfc` describing motivation, the exact
-  contract diff, and compatibility impact, before implementation.
+- Routine changes (bug fixes, internals, docs, performance): PR + the
+  contract test gate (interface drift fails CI).
+- **Standard-level changes** (ops, format, error codes, API laws): open
+  an issue with the *RFC: Standard change* template **before
+  implementing**. An RFC states motivation, the exact contract diff,
+  compatibility impact and the extension-instead alternative.
+- An RFC is *accepted* when a maintainer labels it `rfc-accepted` after
+  open discussion (minimum 72h for breaking changes). Implementation
+  PRs link the RFC and carry the regenerated contract in the same
+  commit.
+- Maintainers' own Standard changes follow the same process — no
+  shortcuts.
 
 ## 4. Scope rule
 

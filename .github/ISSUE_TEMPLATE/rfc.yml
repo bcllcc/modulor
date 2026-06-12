@@ -1,0 +1,44 @@
+name: "RFC: Standard change"
+description: Propose a change to the frozen surface — ops, document format,
+  error registry, or API laws (required before implementation)
+title: "RFC: "
+labels: [rfc]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The op surface is frozen at 1.0-rc (GOVERNANCE.md §2). Breaking
+        changes need an accepted RFC; additive changes need one too if
+        they touch the Standard (new ops, format fields, error codes).
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: What can't be done today? Why does it belong in core
+        rather than an extension (GOVERNANCE.md §4 scope rule)?
+    validations:
+      required: true
+  - type: textarea
+    id: contract-diff
+    attributes:
+      label: Exact contract diff
+      description: The precise change to docs/api.json — new/changed ops
+        with params, types, effects, returns; or format/schema fields; or
+        error codes. Follow the API laws (AGENT_GUIDE.md §3.5).
+      render: diff
+    validations:
+      required: true
+  - type: textarea
+    id: compat
+    attributes:
+      label: Compatibility impact
+      description: Who breaks? Existing documents, recipes, agents,
+        extensions, third-party implementations. Deprecation plan if
+        anything breaks.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Including "do it as an extension" — explain why not.
