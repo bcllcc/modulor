@@ -6,7 +6,7 @@ Pick your runtime; everything here is copy-paste ready.
 
 | runtime | install |
 |---|---|
-| **Claude Code (plugin)** | `/plugin marketplace add bcllcc/modulor` → `/plugin install modulor@modulor` — skill + MCP server in one step (manifests validated by `claude plugin validate` and pinned by CI) |
+| **Claude Code (plugin)** | `/plugin marketplace add bcllcc/modulor` → `/plugin install modulor@modulor` — skill + MCP server in one step (manifests run through `claude plugin validate` in CI; versions pinned to the package by tests) |
 | **Any MCP client** (Claude Desktop, registry clients) | listed on the official MCP registry as `io.github.bcllcc/modulor`; manual config in [mcp/README.md](mcp/README.md) |
 
 **Copy-in artifacts** (these ecosystems have no install channel — by design)
