@@ -70,6 +70,13 @@ def main(argv=None) -> int:
     p_op.add_argument("--units", default="mm")
     p_op.add_argument("--pretty", action="store_true")
 
+    p_plg = sub.add_parser("plugins",
+                           help="list loaded extensions (and load errors); "
+                                "with a namespace, run the API-law "
+                                "conformance check on it")
+    p_plg.add_argument("namespace", nargs="?",
+                       help="extension namespace to check, e.g. 'mech'")
+
     p_repl = sub.add_parser("repl", help="JSON-Lines session (one batch per line)")
     p_repl.add_argument("doc")
     p_repl.add_argument("--units", default="mm")
@@ -107,6 +114,8 @@ def main(argv=None) -> int:
             return 0
         if args.cmd == "check":
             return _cmd_check(args)
+        if args.cmd == "plugins":
+            return _cmd_plugins(args)
         if args.cmd == "run":
             return _cmd_run(args)
         if args.cmd == "op":
@@ -133,6 +142,41 @@ def main(argv=None) -> int:
                                       "message": f"invalid JSON: {e}"}})
         return 1
     return 2
+
+
+def _cmd_plugins(args) -> int:
+    import modulor.engine  # noqa: F401  (triggers plugin discovery)
+    from .ops import REGISTRY
+    from .plugins import check_laws, plugin_status
+
+    status = plugin_status()
+    if args.namespace:
+        if args.namespace not in status["loaded"]:
+            _emit({"ok": False, "error": {
+                "code": "not_found",
+                "message": f"no loaded extension named {args.namespace!r}",
+                "hint": f"loaded: {sorted(status['loaded'])}"}})
+            return 1
+        problems = check_laws(args.namespace)
+        ops = sorted(n for n, e in REGISTRY.items()
+                     if e.get("origin") == args.namespace)
+        _emit({"ok": not problems, "namespace": args.namespace,
+               "ops": ops, "law_violations": problems})
+        return 0 if not problems else 1
+
+    by_ns: dict = {}
+    for n, e in REGISTRY.items():
+        o = e.get("origin", "core")
+        if o != "core":
+            by_ns.setdefault(o, []).append(n)
+    _emit({"ok": not status["errors"],
+           "loaded": {ns: {"module": status["loaded"][ns],
+                           "ops": sorted(by_ns.get(ns, []))}
+                      for ns in sorted(status["loaded"])},
+           "errors": status["errors"],
+           "note": "extensions execute Python at load time - install "
+                   "only packages you trust (see docs/PLUGINS.md)"})
+    return 0 if not status["errors"] else 1
 
 
 def _cmd_check(args) -> int:

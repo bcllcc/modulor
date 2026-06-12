@@ -1,5 +1,5 @@
 {
- "generator": "modulor 0.7.0",
+ "generator": "modulor 0.7.1",
  "contract": "modulor-ops/1",
  "usage": "Pick ONE style. coarse: a single modulor_run tool (recommended; smallest prompt overhead). fine: one tool per op. Execute calls by running `modulor run <doc> -` with the commands JSON on stdin, or via the Python API (modulor.Cad).",
  "coarse": [

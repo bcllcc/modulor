@@ -1,6 +1,6 @@
 # Modulor op API
 
-71 ops · contract `modulor-ops/1` · generated from v0.7.0 — do not edit by hand, run `python scripts/api_dump.py`.
+71 ops · contract `modulor-ops/1` · generated from v0.7.1 — do not edit by hand, run `python scripts/api_dump.py`.
 
 `effects`: **doc** mutates the document · **files** writes files, document untouched · **none** pure query.
 
@@ -918,27 +918,6 @@ Measure geometry: distance between two points, or length / area / volume / bbox 
 
 ```json
 {"op": "measure", "kind": "area", "select": "e4"}
-```
-
-## mech.gear
-
-*effects: doc*  
-Add an involute spur gear outline (a region; extrude it for a solid). Standard full-depth teeth: addendum = module, dedendum = 1.25 x module.
-
-| param | type | required | default | notes |
-|---|---|---|---|---|
-| `module` | number | yes |  | gear module (tooth size), > 0 |
-| `teeth` | integer | yes |  | number of teeth (6..200) |
-| `at` | point2 |  | `[0.0, 0.0]` | gear center |
-| `bore` | number |  | `0.0` | center hole diameter (0 = none) |
-| `pressure_angle` | number |  | `20.0` | pressure angle, degrees (14.5-25) |
-| `layer` | string |  |  | target layer (created on first use) |
-| `tag` | string |  |  | optional label for later selection |
-
-**returns** `{created: [id], pitch_diameter, tip_diameter, root_diameter}`
-
-```json
-{"op": "mech.gear", "module": 2, "teeth": 24, "bore": 8}
 ```
 
 ## mirror

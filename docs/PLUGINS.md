@@ -63,6 +63,18 @@ for users.
   it (`modulor.plugins.plugin_status()`) and continues without you —
   you can't break the host, and the host won't hide your error.
 
+## 2.5 Security boundary (read this)
+
+Extensions are ordinary Python packages: **installing one means running
+its code** at import time, with your user's permissions. The isolation
+described above is about *errors*, not security — there is no sandbox.
+Treat `pip install modulor-something` with exactly the trust you'd give
+any dependency: review it, pin it, prefer known publishers. Agents
+should never be allowed to install extensions autonomously.
+
+Diagnostics: `modulor plugins` shows what loaded and what failed;
+`modulor plugins <namespace>` runs the API-law conformance check.
+
 ## 3. What you inherit for free
 
 Validation and expression support on your params (`"bay*2"` works in

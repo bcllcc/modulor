@@ -65,6 +65,8 @@ def markdown(c: dict) -> str:
     ]
     for name in sorted(REGISTRY):
         e = REGISTRY[name]
+        if e.get("origin", "core") != "core":
+            continue  # the Standard documents core only; extensions ship theirs
         lines.append(f"## {name}")
         lines.append("")
         lines.append(f"*effects: {e['effects']}*  ")

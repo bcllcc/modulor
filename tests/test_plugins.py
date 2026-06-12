@@ -116,6 +116,27 @@ def test_broken_plugin_is_isolated():
         plugins._load_errors.pop("zbroken", None)
 
 
+def test_plugins_cli(tmp_path, capsys):
+    """`modulor plugins` is the diagnostic surface; with a namespace it
+    becomes the conformance gate (exit 1 on law violations)."""
+    import json as _json
+
+    from modulor.cli import main as cli_main
+
+    code = cli_main(["plugins"])
+    out = _json.loads(capsys.readouterr().out)
+    assert "loaded" in out and "errors" in out
+    if "mech" in out["loaded"]:  # extension present in dev/CI envs
+        assert code == 0
+        assert "mech.gear" in out["loaded"]["mech"]["ops"]
+        assert cli_main(["plugins", "mech"]) == 0
+        chk = _json.loads(capsys.readouterr().out)
+        assert chk["ok"] and chk["law_violations"] == []
+    assert cli_main(["plugins", "no_such_ns"]) == 1
+    err = _json.loads(capsys.readouterr().out)
+    assert err["error"]["code"] == "not_found"
+
+
 def test_contract_excludes_plugins(sandbox):
     _add_dummy(sandbox)
     import os

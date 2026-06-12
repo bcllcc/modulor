@@ -237,6 +237,22 @@ def test_every_example_valid():
         validate_params(name, body, e["params"], _Resolver())
 
 
+def test_api_md_documents_exactly_the_core():
+    """docs/API.md is the Standard's human form: it must contain exactly
+    the contract's ops — never locally-installed plugins (regression
+    guard for the API.md pollution finding)."""
+    import re
+    with open(os.path.join(ROOT, "docs", "API.md"), encoding="utf-8") as f:
+        md = f.read()
+    documented = set(re.findall(r"^## ([a-z][a-z0-9_.]*)$", md, re.M))
+    documented.discard("error")  # the '## Error codes' section header
+    contract_ops = set(contract()["ops"])
+    assert documented == contract_ops, (
+        f"API.md drifted: extra={sorted(documented - contract_ops)} "
+        f"missing={sorted(contract_ops - documented)} — run "
+        "scripts/api_dump.py")
+
+
 def test_error_codes_registered():
     """The error taxonomy in the contract matches the code registry."""
     from modulor.errors import ERROR_CODES, CadError
