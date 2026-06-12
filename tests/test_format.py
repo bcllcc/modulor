@@ -152,6 +152,20 @@ def test_check_strict_requires_validator(tmp_path, capsys, monkeypatch):
     assert "modulor[check]" in out["error"]["hint"]
 
 
+def test_installed_metadata_matches_source():
+    """Release hygiene: the installed dist metadata must agree with the
+    source __version__. With an editable install this goes stale after a
+    version bump until you re-run `pip install -e .` — better to fail
+    here than to validate a release against the wrong metadata."""
+    import importlib.metadata
+
+    from modulor import __version__
+    meta = importlib.metadata.version("modulor")
+    assert meta == __version__, (
+        f"installed metadata says {meta} but source is {__version__} — "
+        "run: pip install -e .")
+
+
 def test_readme_op_count_is_current():
     """The headline number in README must match the registry — public
     claims are part of the contract too."""
