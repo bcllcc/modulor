@@ -136,7 +136,6 @@ def _split_sections(pairs):
     entities: list = []
     section = None
     cur = None            # (codes, raw) of the record being filled
-    sink = None           # list collecting finished records
     block = None          # current block dict when inside BLOCK..ENDBLK
     in_poly = False
 
@@ -150,12 +149,12 @@ def _split_sections(pairs):
     for idx, (code, val) in enumerate(pairs):
         if code == 0 and val == "SECTION":
             section = pairs[idx + 1][1] if idx + 1 < len(pairs) else None
-            cur = sink = block = None
+            cur = block = None
             in_poly = False
             continue
         if code == 0 and val == "ENDSEC":
             section = None
-            cur = sink = block = None
+            cur = block = None
             in_poly = False
             continue
 
@@ -420,7 +419,6 @@ class _Ctx:
                             pass
                         pts.append([x, y])
                         if bulge:
-                            nxt = None  # resolved after the loop closes
                             pts.append(("bulge", bulge))  # marker
                     i += 1
                 pts = _resolve_hatch_bulges(pts)

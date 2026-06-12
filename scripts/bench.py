@@ -38,7 +38,7 @@ def main():
         commands.append({"op": "add_box", "at": [0, 0, z - 200],
                          "size": [40000, 16000, 200]})
     n_cmd = len(commands)
-    res = cad.run(commands)
+    cad.run(commands)
     t_build = time.perf_counter() - t0
 
     t0 = time.perf_counter()
@@ -47,7 +47,7 @@ def main():
     size_mb = os.path.getsize(path) / 1e6
 
     t0 = time.perf_counter()
-    r = cad("measure", kind="volume", select="all")
+    cad("measure", kind="volume", select="all")
     t_measure = time.perf_counter() - t0
 
     t0 = time.perf_counter()

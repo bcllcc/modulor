@@ -77,10 +77,8 @@ def render_3d(doc, ids, path: str, width: int = 1200, height: int = 900,
 
     if perspective:
         eye_pt = eye
-        look = target
     else:
         eye_pt = center + eye_dir * radius * 3.0
-        look = center
 
     def project(verts: np.ndarray):
         rel = verts - eye_pt

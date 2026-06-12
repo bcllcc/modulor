@@ -104,7 +104,7 @@ def test_broken_plugin_is_isolated():
     try:
         ep = _FakeEp()
         try:
-            mod = ep.load()
+            ep.load()
         except Exception as e:
             plugins._load_errors[ep.name] = f"{type(e).__name__}: {e}"
         status = plugins.plugin_status()

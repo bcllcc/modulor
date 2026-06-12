@@ -1,7 +1,6 @@
 """2D drafting ops: primitives, walls, dimensions, text, booleans, offsets."""
 from __future__ import annotations
 
-import math
 
 from manifold3d import CrossSection, FillRule, JoinType
 

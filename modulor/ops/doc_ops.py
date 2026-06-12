@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 from .. import shapes
-from ..document import DEFAULT_LAYER, DEFAULT_MATERIAL, UNITS
+from ..document import DEFAULT_LAYER, UNITS
 from ..errors import CadError
-from . import P, REGISTRY, describe_op, list_ops, op
+from . import P, describe_op, list_ops, op
 
 
 @op("doc_new",
@@ -227,7 +227,6 @@ def delete(doc, p):
 
 
 def _snap_dir(doc) -> str:
-    import os
     if not doc.path:
         raise CadError("no_path", "snapshots need a document file",
                        hint="save the document first (it has no path yet)")

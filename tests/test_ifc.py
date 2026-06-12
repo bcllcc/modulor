@@ -5,8 +5,6 @@ independent anchor: it parses the file with a real IFC toolkit and builds
 actual geometry from it. If ifcopenshell is unavailable on a platform the
 deep checks skip, but the structural self-checks always run.
 """
-import json
-import os
 
 import pytest
 

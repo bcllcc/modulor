@@ -40,6 +40,7 @@ and GOVERNANCE.md §4.
 ## Quality bar for PRs
 
 - All tests green, including the fuzz slice and the DXF corpus.
+- `ruff check modulor scripts tests extensions` clean (CI enforces it).
 - New behavior comes with tests; bug fixes come with a regression test.
 - Validate-before-mutate: a failing op must never leave a broken entity
   in the document.

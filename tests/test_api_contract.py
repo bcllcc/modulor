@@ -32,10 +32,10 @@ def test_op_surface_matches_contract():
                        "scripts/api_dump.py and commit docs/api.json")
 
     for name in stored_ops:
-        s, l = stored_ops[name], live_ops[name]
-        assert l["effects"] == s["effects"], \
-            f"{name}: effects changed {s['effects']} -> {l['effects']}"
-        s_params, l_params = s["params"], l["params"]
+        s, live = stored_ops[name], live_ops[name]
+        assert live["effects"] == s["effects"], \
+            f"{name}: effects changed {s['effects']} -> {live['effects']}"
+        s_params, l_params = s["params"], live["params"]
         gone = sorted(set(s_params) - set(l_params))
         assert not gone, f"{name}: params removed: {gone}"
         new = sorted(set(l_params) - set(s_params))

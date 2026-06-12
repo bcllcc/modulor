@@ -29,7 +29,7 @@ dependencies = [
 
 [project.optional-dependencies]
 check = ["jsonschema>=4"]
-dev = ["pytest>=7", "jsonschema>=4", "ifcopenshell>=0.8"]
+dev = ["pytest>=7", "jsonschema>=4", "ifcopenshell>=0.8", "ruff>=0.4"]
 
 [project.scripts]
 modulor = "modulor.cli:main"
@@ -39,3 +39,8 @@ include = ["modulor*"]
 
 [tool.setuptools.package-data]
 modulor = ["viewer/*.html", "document.schema.json"]
+
+[tool.ruff.lint.per-file-ignores]
+# the DXF writer mirrors the format's group-code pairs line by line;
+# the semicolon pairing is the readable form there
+"modulor/exporters/dxf.py" = ["E702"]
