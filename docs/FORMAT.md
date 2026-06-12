@@ -38,6 +38,7 @@ checker for documents from any implementation
 | `levels` | name → `{elevation, height?}` — building storeys |
 | `recipe` | the op-command list that generates this model (may be empty) |
 | `entities` | id (`e1`, `e2`, ...) → entity object |
+| `blocks` | name → `{base, entities[]}` — reusable component definitions referenced by `instance` entities (optional; added during the modulor/1 lifetime) |
 
 ## Conventions (normative)
 
@@ -55,7 +56,7 @@ checker for documents from any implementation
 
 ## Entities
 
-Fourteen types. Every entity has `type`, `layer` and an optional `tag`
+Eighteen types. Every entity has `type`, `layer` and an optional `tag`
 (the stable, human/agent-given handle that survives regeneration).
 
 | type | geometry fields | notes |
@@ -65,8 +66,11 @@ Fourteen types. Every entity has `type`, `layer` and an optional `tag`
 | `spline` | `points[]`, `closed`, `samples` | centripetal Catmull-Rom *through* the points; `samples` = segments between points |
 | `circle` | `center`, `radius` | |
 | `arc` | `center`, `radius`, `start_angle`, `end_angle` | CCW from start to end |
+| `ellipse` | `center`, `rx`, `ry`, `rotation` | closed shape; semi-axes before the CCW rotation |
 | `region` | `contours[][]` | boolean results; CCW outers + CW holes |
+| `hatch` | `contours[][]`, `pattern`, `spacing`, `angle` | `lines`/`cross`/`solid` clipped to the contours; hatch lines are **derived**, never stored |
 | `text` | `at`, `text`, `height`, `rotation` | `at` is baseline-left |
+| `leader` | `points[]`, `text`, `height` | annotation: arrow at `points[0]`, text past the last point |
 | `dim` | `p1`, `p2`, `offset`, `text?` | aligned dimension; value measured live, `text` overrides |
 | `dim_angular` | `center`, `p1`, `p2`, `radius`, `text?` | CCW angle at center between the two rays |
 | `dim_radial` | `center`, `radius`, `direction`, `text?` | leader at `direction` degrees |
@@ -74,6 +78,7 @@ Fourteen types. Every entity has `type`, `layer` and an optional `tag`
 | `grid` | `xs[]`, `ys[]`, `x_labels[]`, `y_labels[]` | structural axes; labels feed `grid_x('B')` expressions |
 | `room` | `name`, `points[]`, `kind`, `level?` | program annotation; area derived live |
 | `solid` | `mesh{vertices, triangles}`, `material?` | the only 3D-native type |
+| `instance` | `block`, `at`, `rotation`, `scale` | places a block: the block's `base` lands on `at`, rotated CCW, uniformly scaled. Expansion is **derived**, never stored. Definitions are immutable and can only reference earlier blocks, so cycles cannot occur |
 
 Defaults that are *not* stored (derived at use time, scaled to document
 units as mm-equivalents): wall height 3000, door sill 0 / head 2100,

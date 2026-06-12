@@ -53,6 +53,10 @@ def measure(doc, p):
                                            ent.get("closed", False))
             elif t == "circle":
                 total += g.TAU * ent["radius"]
+            elif t == "ellipse":
+                total += g.polyline_length(
+                    g.ellipse_points(ent["center"], ent["rx"], ent["ry"],
+                                     ent.get("rotation", 0.0)), closed=True)
             elif t == "arc":
                 sweep = (ent["end_angle"] - ent["start_angle"]) % 360.0 or 360.0
                 total += g.TAU * ent["radius"] * sweep / 360.0
@@ -67,9 +71,14 @@ def measure(doc, p):
         total = 0.0
         for eid in ids:
             ent = doc.entities[eid]
-            if ent["type"] in ("circle", "polyline", "spline", "region",
-                               "wall", "room"):
+            if ent["type"] in ("circle", "ellipse", "polyline", "spline",
+                               "region", "hatch", "wall", "room"):
                 total += shapes.to_cross_section(doc, ent).area()
+            elif ent["type"] == "instance":
+                try:
+                    total += shapes.to_cross_section(doc, ent).area()
+                except CadError:
+                    pass  # blocks without closed shapes contribute nothing
         return {"value": round(total, 6), "units": f"{doc.units}^2"}
 
     # volume
@@ -78,6 +87,11 @@ def measure(doc, p):
         ent = doc.entities[eid]
         if ent["type"] in ("solid", "wall"):
             total += shapes.entity_to_manifold(doc, ent).volume()
+        elif ent["type"] == "instance":
+            try:
+                total += shapes.entity_to_manifold(doc, ent).volume()
+            except CadError:
+                pass  # blocks without 3D bodies contribute nothing
     return {"value": round(total, 6), "units": f"{doc.units}^3"}
 
 
@@ -164,6 +178,19 @@ def validate(doc, p):
             elif t in ("circle", "arc"):
                 if ent["radius"] <= 0:
                     add(eid, "degenerate", "non-positive radius")
+            elif t == "ellipse":
+                if ent["rx"] <= 0 or ent["ry"] <= 0:
+                    add(eid, "degenerate", "non-positive semi-axis")
+            elif t == "hatch":
+                if ent["spacing"] <= 0:
+                    add(eid, "degenerate", "non-positive hatch spacing")
+                if not ent.get("contours"):
+                    add(eid, "degenerate", "hatch without contours")
+            elif t == "leader":
+                if len(ent["points"]) < 2:
+                    add(eid, "degenerate", "leader with < 2 points")
+            elif t == "instance":
+                shapes.expand_instance(doc, ent)  # raises with details
             elif t == "wall":
                 length = g.polyline_length(ent["path"])
                 shapes.wall_footprint(doc, ent)

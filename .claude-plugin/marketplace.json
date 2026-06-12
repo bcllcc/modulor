@@ -12,7 +12,7 @@
       "name": "modulor",
       "source": "./integrations/claude-code/modulor-plugin",
       "description": "Draw floor plans, model buildings and parts, export DXF/SVG/STL/GLB and IFC BIM. Bundles the Modulor MCP server and a usage skill. Requires: pip install modulor",
-      "version": "1.0.0rc1",
+      "version": "1.0.0rc2",
       "author": {
         "name": "Modulor contributors"
       },

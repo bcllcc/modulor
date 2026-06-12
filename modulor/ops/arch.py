@@ -48,6 +48,11 @@ def _k(doc) -> float:
 def add_grid(doc, p):
     xs = _axis_coords(doc, p["x"], "x")
     ys = _axis_coords(doc, p["y"], "y")
+    for key in ("x_labels", "y_labels"):
+        if p[key] is not None and not isinstance(p[key], (list, tuple)):
+            raise CadError("bad_param",
+                           f"{key} should be a list of labels, "
+                           f"got {p[key]!r}")
     xl = [str(v) for v in p["x_labels"]] if p["x_labels"] else \
         list(string.ascii_uppercase[:len(xs)])
     yl = [str(v) for v in p["y_labels"]] if p["y_labels"] else \

@@ -219,6 +219,66 @@ def default_circle_segments(radius: float) -> int:
     return int(min(128, max(16, round(math.sqrt(max(radius, 0.01)) * 12))))
 
 
+def ellipse_points(center, rx: float, ry: float, rotation_deg: float = 0.0,
+                   segments: int = 0) -> list[list[float]]:
+    """Discretize an ellipse (CCW, closed implicitly like circle_points)."""
+    if segments <= 0:
+        segments = default_circle_segments(max(rx, ry))
+    cx, cy = v2(center)
+    rot = math.radians(rotation_deg)
+    cr, sr = math.cos(rot), math.sin(rot)
+    pts = []
+    for i in range(segments):
+        a = TAU * i / segments
+        x, y = rx * math.cos(a), ry * math.sin(a)
+        pts.append([cx + x * cr - y * sr, cy + x * sr + y * cr])
+    return pts
+
+
+def hatch_lines(contours, spacing: float, angle_deg: float,
+                max_lines: int = 20_000) -> list[list[list[float]]]:
+    """Parallel hatch segments clipping a polygon set (even-odd rule).
+
+    Returns [[p0, p1], ...] in world coordinates. Contours follow the
+    region convention (list of rings); holes are honored by even-odd
+    pairing of the scanline crossings.
+    """
+    if spacing <= 0:
+        raise ValueError("hatch spacing must be positive")
+    a = math.radians(angle_deg)
+    ca, sa = math.cos(a), math.sin(a)
+    # rotate the polygon by -angle so hatch lines become horizontal
+    rings = []
+    for c in contours:
+        rings.append([[x * ca + y * sa, -x * sa + y * ca] for x, y in c])
+    ymin = min(y for r in rings for _, y in r)
+    ymax = max(y for r in rings for _, y in r)
+    n_lines = int((ymax - ymin) / spacing)
+    if n_lines > max_lines:
+        raise ValueError(f"hatch would need {n_lines} lines "
+                         f"(budget {max_lines}); increase spacing")
+    segs = []
+    y = ymin + spacing * 0.5
+    while y < ymax:
+        xs = []
+        for r in rings:
+            for i in range(len(r)):
+                x0, y0 = r[i]
+                x1, y1 = r[(i + 1) % len(r)]
+                if (y0 <= y < y1) or (y1 <= y < y0):
+                    xs.append(x0 + (y - y0) / (y1 - y0) * (x1 - x0))
+        xs.sort()
+        for i in range(0, len(xs) - 1, 2):
+            xa, xb = xs[i], xs[i + 1]
+            if xb - xa < 1e-12:
+                continue
+            # rotate back to world coordinates
+            segs.append([[xa * ca - y * sa, xa * sa + y * ca],
+                         [xb * ca - y * sa, xb * sa + y * ca]])
+        y += spacing
+    return segs
+
+
 # ---------------------------------------------------------------- polylines
 
 def polyline_length(pts, closed: bool = False) -> float:

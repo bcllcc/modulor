@@ -41,8 +41,9 @@ definition a change to the Standard, and follows the rules below.
 
 ## 2. Versioning and compatibility
 
-**The op surface was declared 1.0-rc on 2026-06-12** (71 core ops,
-docs/api.json). From that point:
+**The op surface was declared 1.0-rc on 2026-06-12** (71 core ops, since
+extended to 77 by accepted RFC #1; docs/api.json is authoritative). From
+that point:
 
 - breaking changes to ops, the document format or the error registry
   require an **accepted RFC** (see §3) and ship only in a major version,

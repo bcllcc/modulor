@@ -38,6 +38,7 @@ def doc_info(doc, p):
         "materials": list(doc.materials.keys()),
         "entities": len(doc.entities),
         "counts": counts,
+        **({"blocks": sorted(doc.blocks)} if doc.blocks else {}),
         "bbox": shapes.doc_bbox(doc).as_dict(),
     }
 

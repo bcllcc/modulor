@@ -1,6 +1,7 @@
 """Minimal DXF R12 (AC1009) writer — the most widely readable CAD exchange
-format. Covers LINE, CIRCLE, ARC, LWPOLYLINE-era POLYLINE, and TEXT; richer
-entities (dims, walls, regions) are exploded to those primitives.
+format. Covers LINE, CIRCLE, ARC, LWPOLYLINE-era POLYLINE, TEXT and
+BLOCK/INSERT (Modulor block instances export as native blocks); richer
+entities (dims, walls, regions, hatches) are exploded to those primitives.
 """
 from __future__ import annotations
 
@@ -17,7 +18,27 @@ _ACI = [
 def export_dxf(doc, ids, path: str) -> dict:
     from .. import shapes
 
-    prims = flatten.display_list(doc, ids)
+    # instances export as native INSERTs; everything else flattens to prims
+    plain_ids = [e for e in ids if doc.entities[e]["type"] != "instance"]
+    inst_ids = [e for e in ids if doc.entities[e]["type"] == "instance"]
+    prims = flatten.display_list(doc, plain_ids)
+
+    # blocks referenced by the exported instances, including nested ones
+    block_names: list[str] = []
+    queue = [doc.entities[e]["block"] for e in inst_ids]
+    while queue:
+        name = queue.pop(0)
+        if name in block_names:
+            continue
+        block_names.append(name)
+        for child in shapes.get_block(doc, name)["entities"]:
+            if child["type"] == "instance":
+                queue.append(child["block"])
+    block_prims = {name: flatten.display_list_ents(
+                       doc, [c for c in doc.blocks[name]["entities"]
+                             if c["type"] != "instance"])
+                   for name in block_names}
+
     lines: list[str] = []
     w = lines.append
 
@@ -31,7 +52,11 @@ def export_dxf(doc, ids, path: str) -> dict:
     code(0, "ENDSEC")
 
     # ---- layer table
-    layers = sorted({p["layer"] for p in prims} | set(doc.layers.keys()))
+    layers = {p["layer"] for p in prims} | set(doc.layers.keys())
+    for plist in block_prims.values():
+        layers |= {p["layer"] for p in plist}
+    layers |= {doc.entities[e].get("layer", "0") for e in inst_ids}
+    layers = sorted(layers)
     code(0, "SECTION"); code(2, "TABLES")
     code(0, "TABLE"); code(2, "LAYER"); code(70, len(layers))
     for name in layers:
@@ -42,8 +67,39 @@ def export_dxf(doc, ids, path: str) -> dict:
     code(0, "ENDTAB")
     code(0, "ENDSEC")
 
+    # ---- block definitions
+    if block_names:
+        code(0, "SECTION"); code(2, "BLOCKS")
+        for name in block_names:
+            blk = doc.blocks[name]
+            bx, by = blk.get("base", [0.0, 0.0])
+            code(0, "BLOCK"); code(8, "0"); code(2, name); code(70, 0)
+            code(10, _f(bx)); code(20, _f(by)); code(30, 0); code(3, name)
+            _write_prims(code, block_prims[name])
+            for child in blk["entities"]:
+                if child["type"] == "instance":
+                    _write_insert(code, child)
+            code(0, "ENDBLK")
+        code(0, "ENDSEC")
+
     # ---- entities
     code(0, "SECTION"); code(2, "ENTITIES")
+    n = _write_prims(code, prims)
+    for eid in inst_ids:
+        _write_insert(code, doc.entities[eid])
+        n += 1
+    code(0, "ENDSEC")
+    code(0, "EOF")
+
+    with open(path, "w", encoding="ascii", errors="replace", newline="\r\n") as f:
+        f.write("\n".join(lines) + "\n")
+    out = {"path": path, "entities": n, "layers": layers}
+    if block_names:
+        out["blocks"] = block_names
+    return out
+
+
+def _write_prims(code, prims) -> int:
     n = 0
     for prim in prims:
         k = prim["kind"]
@@ -75,19 +131,24 @@ def export_dxf(doc, ids, path: str) -> dict:
         elif k == "text":
             code(0, "TEXT"); code(8, layer)
             x, y = prim["at"]
-            if prim.get("anchor") == "middle":
+            anchor = prim.get("anchor")
+            if anchor in ("middle", "end"):
                 from ..render import font
-                x -= font.text_width(prim["text"], prim["height"]) / 2
+                shift = font.text_width(prim["text"], prim["height"])
+                x -= shift / 2 if anchor == "middle" else shift
             code(10, _f(x)); code(20, _f(y)); code(30, 0)
             code(40, _f(prim["height"])); code(1, prim["text"])
             code(50, _f(prim.get("rotation", 0.0)))
             n += 1
-    code(0, "ENDSEC")
-    code(0, "EOF")
+    return n
 
-    with open(path, "w", encoding="ascii", errors="replace", newline="\r\n") as f:
-        f.write("\n".join(lines) + "\n")
-    return {"path": path, "entities": n, "layers": layers}
+
+def _write_insert(code, ent):
+    s = float(ent.get("scale", 1.0))
+    code(0, "INSERT"); code(8, ent.get("layer", "0")); code(2, ent["block"])
+    code(10, _f(ent["at"][0])); code(20, _f(ent["at"][1])); code(30, 0)
+    code(41, _f(s)); code(42, _f(s)); code(43, _f(s))
+    code(50, _f(ent.get("rotation", 0.0)))
 
 
 def _polyline(code, layer, pts, closed: bool):

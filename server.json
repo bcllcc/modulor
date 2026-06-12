@@ -6,12 +6,12 @@
     "url": "https://github.com/bcllcc/modulor",
     "source": "github"
   },
-  "version": "1.0.0rc1",
+  "version": "1.0.0rc2",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "modulor",
-      "version": "1.0.0rc1",
+      "version": "1.0.0rc2",
       "transport": {
         "type": "stdio"
       },

@@ -82,7 +82,8 @@ def _prim_svg(prim, base_w: float) -> str:
         x, y = prim["at"]
         h = prim["height"]
         rot = prim.get("rotation", 0.0)
-        anchor = {"start": "start", "middle": "middle"}[prim.get("anchor", "start")]
+        anchor = {"start": "start", "middle": "middle",
+                  "end": "end"}[prim.get("anchor", "start")]
         # un-flip the y axis locally so glyphs are upright
         tf = f'translate({_f(x)},{_f(y)}) rotate({_f(rot)}) scale(1,-1)'
         return (f'<text transform="{tf}" font-size="{_f(h * 1.35)}" '

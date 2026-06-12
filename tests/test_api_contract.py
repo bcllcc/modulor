@@ -72,12 +72,13 @@ def test_conventions_hold():
 # conscious, reviewed decision instead of an accident.
 CREATORS = {  # return {created: [ids], ...}
     "add_arc", "add_box", "add_circle", "add_cylinder", "add_dim",
-    "add_dim_angular", "add_dim_radial", "add_facade", "add_grid",
-    "add_implicit", "add_line", "add_polyline", "add_rect", "add_roof",
-    "add_room", "add_sphere", "add_spline", "add_stair", "add_surface",
-    "add_text", "add_wall", "array", "boolean_2d", "boolean_3d", "copy",
-    "extrude", "import_dxf", "loft", "offset", "project", "revolve",
-    "slice", "solidify", "sweep",
+    "add_dim_angular", "add_dim_radial", "add_ellipse", "add_facade",
+    "add_grid", "add_hatch", "add_implicit", "add_leader", "add_line",
+    "add_polyline", "add_rect", "add_roof", "add_room", "add_sphere",
+    "add_spline", "add_stair", "add_surface", "add_text", "add_torus",
+    "add_wall", "array", "boolean_2d", "boolean_3d", "copy",
+    "define_block", "extrude", "import_dxf", "insert_block", "loft",
+    "offset", "project", "revolve", "slice", "solidify", "sweep",
 }
 MUTATORS = {  # return {modified: [ids], ...}
     "add_opening", "chamfer", "deform", "fillet", "move", "rotate",

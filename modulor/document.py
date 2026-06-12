@@ -20,11 +20,12 @@ UNITS = ("mm", "cm", "m", "in", "ft")
 DEFAULT_LAYER = {"color": "#222222", "visible": True, "line_width": 1.0}
 DEFAULT_MATERIAL = {"color": "#9aa0a6", "metallic": 0.0, "roughness": 0.8}
 
-ENTITY_TYPES_2D = ("line", "polyline", "spline", "circle", "arc", "region",
-                   "text", "dim", "dim_angular", "dim_radial", "wall",
-                   "grid", "room")
+ENTITY_TYPES_2D = ("line", "polyline", "spline", "circle", "arc", "ellipse",
+                   "region", "hatch", "text", "dim", "dim_angular",
+                   "dim_radial", "leader", "wall", "grid", "room")
 ENTITY_TYPES_3D = ("solid",)
-ENTITY_TYPES = ENTITY_TYPES_2D + ENTITY_TYPES_3D
+# instances reference a block definition and may carry 2D and 3D children
+ENTITY_TYPES = ENTITY_TYPES_2D + ENTITY_TYPES_3D + ("instance",)
 
 
 class Document:
@@ -37,6 +38,7 @@ class Document:
         self.layers: dict[str, dict] = {"0": dict(DEFAULT_LAYER)}
         self.materials: dict[str, dict] = {"default": dict(DEFAULT_MATERIAL)}
         self.entities: dict[str, dict] = {}
+        self.blocks: dict[str, dict] = {}      # name -> {base, entities: [...]}
         self.params: dict[str, float] = {}     # named design parameters
         self.levels: dict[str, dict] = {}      # name -> {elevation, height}
         self.recipe: list[dict] = []           # the program that built this doc
@@ -197,6 +199,7 @@ class Document:
             "levels": self.levels,
             "recipe": self.recipe,
             "entities": self.entities,
+            **({"blocks": self.blocks} if self.blocks else {}),
         }
 
     @classmethod
@@ -212,6 +215,7 @@ class Document:
         doc.levels = d.get("levels", {})
         doc.recipe = d.get("recipe", [])
         doc.entities = d.get("entities", {})
+        doc.blocks = d.get("blocks", {})
         return doc
 
     def save(self, path: str | None = None):

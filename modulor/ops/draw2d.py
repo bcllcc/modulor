@@ -154,6 +154,115 @@ def add_arc(doc, p):
     return {"created": [eid]}
 
 
+@op("add_ellipse",
+    doc="Add an ellipse. Closed shape: it can be extruded, hatched and used "
+        "in 2D booleans like a circle.",
+    params={
+        "center": P.point2(req=True),
+        "rx": P.number(req=True, doc="semi-axis along x before rotation (> 0)"),
+        "ry": P.number(req=True, doc="semi-axis along y before rotation (> 0)"),
+        "rotation": P.number(default=0.0, doc="degrees CCW"),
+        "layer": P.layer(),
+        "tag": P.tag(),
+    },
+    example={"op": "add_ellipse", "center": [0, 0], "rx": 800, "ry": 450},
+    returns="{created: [id]}")
+def add_ellipse(doc, p):
+    if p["rx"] <= 0 or p["ry"] <= 0:
+        raise CadError("degenerate", "ellipse needs positive semi-axes")
+    eid = doc.add_entity("ellipse",
+                         {"center": p["center"], "rx": p["rx"], "ry": p["ry"],
+                          "rotation": p["rotation"]},
+                         layer=p["layer"] or "0", tag=p["tag"])
+    return {"created": [eid]}
+
+
+@op("add_hatch",
+    doc="Hatch the area of closed shapes with a line pattern (or a solid "
+        "fill). The boundary entities are kept; the hatch is its own entity "
+        "and re-clips automatically when rendered.",
+    params={
+        "boundary": P.select(req=True, doc="closed shapes: circle / ellipse / "
+                                           "closed polyline / region / room / "
+                                           "wall footprint"),
+        "pattern": P.enum(["lines", "cross", "solid"], default="lines",
+                          doc="parallel lines, two perpendicular passes, "
+                              "or a solid fill"),
+        "spacing": P.number(doc="distance between hatch lines "
+                                "(default: boundary size / 25)"),
+        "angle": P.number(default=45.0, doc="hatch line direction, degrees"),
+        "layer": P.layer(),
+        "tag": P.tag(),
+    },
+    example={"op": "add_hatch", "boundary": "e3", "pattern": "lines",
+             "angle": 45},
+    returns="{created: [id], lines}")
+def add_hatch(doc, p):
+    ids = doc.select(p["boundary"])
+    if not ids:
+        raise CadError("empty_selection", "boundary selector matched nothing")
+    contours = []
+    for eid in ids:
+        contours.extend(shapes.entity_contours(doc, doc.entities[eid]))
+    cs = CrossSection(contours, FillRule.Positive)
+    if cs.is_empty():
+        raise CadError("empty_result", "boundary has no area")
+    contours = cs.to_polygons()
+    box_pts = [pt for c in contours for pt in c]
+    span = max(max(x for x, _ in box_pts) - min(x for x, _ in box_pts),
+               max(y for _, y in box_pts) - min(y for _, y in box_pts))
+    spacing = p["spacing"] if p["spacing"] is not None else span / 25.0
+    if spacing <= 0:
+        raise CadError("bad_param", "hatch spacing must be positive")
+    contours = [[[float(x), float(y)] for x, y in c] for c in contours]
+    n_lines = 0
+    if p["pattern"] != "solid":
+        try:  # validate-before-mutate: budget + geometry checks
+            n_lines = len(g.hatch_lines(contours, spacing, p["angle"]))
+            if p["pattern"] == "cross":
+                n_lines += len(g.hatch_lines(contours, spacing,
+                                             p["angle"] + 90.0))
+        except ValueError as e:
+            raise CadError("over_budget", str(e))
+    eid = doc.add_entity("hatch",
+                         {"contours": contours, "pattern": p["pattern"],
+                          "spacing": spacing, "angle": p["angle"]},
+                         layer=p["layer"] or doc.entities[ids[0]]["layer"],
+                         tag=p["tag"])
+    return {"created": [eid], "lines": n_lines}
+
+
+@op("add_leader",
+    doc="Leader annotation: an arrow at the first point, a line through the "
+        "given points, and text at the last point.",
+    params={
+        "points": P.points(req=True, doc="arrow tip first, text end last "
+                                         "(2+ points)"),
+        "text": P.string(req=True, doc="the annotation text"),
+        "height": P.number(doc="text height (default: 250mm equivalent)"),
+        "layer": P.layer(),
+        "tag": P.tag(),
+    },
+    example={"op": "add_leader", "points": [[1200, 800], [1800, 1400]],
+             "text": "waterproofing"},
+    returns="{created: [id]}")
+def add_leader(doc, p):
+    pts = p["points"]
+    if len(pts) < 2:
+        raise CadError("degenerate", "leader needs at least 2 points")
+    if g.polyline_length(pts) < 1e-9:
+        raise CadError("degenerate", "leader points coincide")
+    height = p["height"]
+    if height is None:
+        height = 250.0 / g.unit_scale(doc.units)
+    if height <= 0:
+        raise CadError("bad_param", "leader text height must be positive")
+    eid = doc.add_entity("leader",
+                         {"points": pts, "text": p["text"], "height": height},
+                         layer=p["layer"] or "dims", tag=p["tag"])
+    return {"created": [eid]}
+
+
 @op("add_text",
     doc="Add a text label.",
     params={

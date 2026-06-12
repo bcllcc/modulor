@@ -13,6 +13,14 @@ from ..errors import CadError
 from . import P, op
 
 
+def _check_segments(p, cap: int = 512):
+    s = p.get("segments")
+    if s is not None and (s < 0 or s > cap):
+        raise CadError("over_budget",
+                       f"segments = {s} exceeds the budget of {cap}",
+                       hint="0 picks a sensible automatic count")
+
+
 def _add_solid(doc, man: Manifold, p, default_layer="model") -> str:
     if man.is_empty():
         raise CadError("empty_result", "operation produced an empty solid")
@@ -73,6 +81,7 @@ def add_box(doc, p):
              "height": 2800},
     returns="{created: [id], volume, bbox}")
 def add_cylinder(doc, p):
+    _check_segments(p)
     if p["radius"] <= 0 or p["height"] <= 0:
         raise CadError("degenerate", "cylinder needs positive radius and height")
     r_top = p["radius"] if p["radius_top"] is None else p["radius_top"]
@@ -96,9 +105,42 @@ def add_cylinder(doc, p):
     example={"op": "add_sphere", "center": [0, 0, 500], "radius": 300},
     returns="{created: [id], volume, bbox}")
 def add_sphere(doc, p):
+    _check_segments(p)
     if p["radius"] <= 0:
         raise CadError("degenerate", "sphere needs a positive radius")
     man = Manifold.sphere(p["radius"], p["segments"]).translate(tuple(p["center"]))
+    return _solid_result(doc, _add_solid(doc, man, p))
+
+
+@op("add_torus",
+    doc="Add a torus lying in the XY plane (donut axis = +Z through `at`).",
+    params={
+        "at": P.point3(default=[0.0, 0.0, 0.0], doc="center of the torus"),
+        "radius": P.number(req=True, doc="ring radius: center to tube center"),
+        "tube_radius": P.number(req=True, doc="tube radius (> 0, < radius)"),
+        "segments": P.integer(default=0, doc="0 = automatic"),
+        "material": P.material(),
+        "layer": P.layer(),
+        "tag": P.tag(),
+    },
+    example={"op": "add_torus", "at": [0, 0, 500], "radius": 400,
+             "tube_radius": 80},
+    returns="{created: [id], volume, bbox}")
+def add_torus(doc, p):
+    _check_segments(p)
+    R, r = p["radius"], p["tube_radius"]
+    if r <= 0:
+        raise CadError("degenerate", "torus needs a positive tube_radius")
+    if R <= r:
+        raise CadError("degenerate",
+                       f"ring radius {R} must exceed tube_radius {r}",
+                       hint="a self-intersecting torus is not a manifold")
+    # revolve the tube circle (profile x = distance from the +Z axis)
+    circle = g.circle_points([R, 0.0], r,
+                             p["segments"] or g.default_circle_segments(r))
+    cs = CrossSection([circle], FillRule.Positive)
+    man = cs.revolve(p["segments"] or g.default_circle_segments(R), 360.0)
+    man = man.translate(tuple(p["at"]))
     return _solid_result(doc, _add_solid(doc, man, p))
 
 
@@ -162,6 +204,7 @@ def extrude(doc, p):
     example={"op": "revolve", "select": "e3", "angle": 360},
     returns="{created: [ids]}")
 def revolve(doc, p):
+    _check_segments(p)
     ids = doc.select(p["select"])
     if not ids:
         raise CadError("empty_selection", "selector matched nothing")

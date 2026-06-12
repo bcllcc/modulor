@@ -1,5 +1,5 @@
 {
- "generator": "modulor 1.0.0rc1",
+ "generator": "modulor 1.0.0rc2",
  "contract": "modulor-ops/1",
  "usage": "Pick ONE style. coarse: a single modulor_run tool (recommended; smallest prompt overhead). fine: one tool per op. Execute calls by running `modulor run <doc> -` with the commands JSON on stdin, or via the Python API (modulor.Cad).",
  "coarse": [
@@ -7,7 +7,7 @@
    "type": "function",
    "function": {
     "name": "modulor_run",
-    "description": "Run Modulor CAD commands against a document file (2D drafting + 3D modeling; exports DXF/SVG/GLB/STL/IFC; renders PNG). Commands are executed atomically in order; each is {\"op\": <name>, ...params}. Use {\"op\":\"help\",\"name\":<op>} to inspect any op. Available ops — add_arc: Add a circular arc, CCW from start_angle to end_angle (degrees from +X); add_box: Add an axis-aligned box solid; add_circle: Add a circle; add_cylinder: Add a cylinder (or cone, with radius_top) standing on its base; add_dim: Add an aligned linear dimension between two points; add_dim_angular: Angular dimension: measures the CCW angle at `center` from the ray toward p1 to the ray toward p2, drawn as an arc at `radius`; add_dim_radial: Radius dimension on a circle or arc: a leader at `angle` with the text 'R<value>'; add_facade: Curtain-wall facade between two plan points: a mullion grid solid plus a glass pane solid; add_grid: Structural grid: labeled axis lines drawn in plan; add_implicit: Sculpt a solid from a math expression over x, y, z: the solid is where the expression is POSITIVE; add_layer: Create or update a layer; add_level: Define a named building level (storey); add_line: Add a straight line segment; add_material: Create or update a material (used by 3D solids; exported to glTF/OBJ); add_opening: Cut a door or window into a wall; add_polyline: Add a polyline (open or closed); add_rect: Add an axis-aligned rectangle (a closed polyline), optionally rotated; add_roof: Generate a roof solid over a closed footprint: 'flat' slab, 'shed' single slope, or 'gable' double slope with a central ridge; add_room: Declare a room/zone/site: a named program area; add_sphere: Add a sphere; add_spline: Add a smooth curve through the given points (centripetal Catmull-Rom); add_stair: Straight stair flight as a solid; add_surface: Doubly-curved surface slab: z = f(x, y) over a rectangle, given thickness; add_text: Add a text label; add_wall: Add a wall along a centerline path; array: Repeat entities in a grid or around a center (polar); boolean_2d: 2D boolean between closed shapes; boolean_3d: 3D boolean between solids (walls are converted automatically); chamfer: Cut the corners of polylines with straight bevels at the given setback distance (in place); copy: Copy entities, translating each copy by `by` (repeated `count` times); define_param: Declare a design parameter with a default value — sets it only if it does not exist yet; deform: Non-rigid deformation of solids (in place): twist about the vertical axis, taper along the height, or bend along x into an arc; delete: Delete entities; diff: Compare the current model against a saved snapshot: parameter changes, entity additions/removals/modifications, and metric deltas; doc_info: Summary of the document: units, layers, entity counts, bounding box; doc_new: Reset the document to an empty state; export: Export to a file; format from the extension; extrude: Extrude closed 2D shapes vertically into solids (one solid per selected entity); fillet: Round the corners of polylines with arcs of the given radius (in place); find: Spatial query: which entities are at/near a point, or inside a box? Results are sorted by distance; get: Full data of one entity, including geometry; help: Introspect the API: list all ops, or full parameter docs for one op; import_dxf: Import entities from a DXF file (ASCII, R12 through current); list: List entities (id, type, layer, tag and a one-line geometric summary); list_layers: List layers and their properties; loft: Skin a solid through a stack of closed profiles at increasing heights (straight/ruled between sections — add more sections for curvature, or run 'smooth' after); measure: Measure geometry: distance between two points, or length / area / volume / bbox of selected entities; mirror: Mirror entities across the line p1->p2 (solids: across the vertical plane through that line); move: Translate entities by a vector; offset: Offset closed shapes outward (+) or inward (-) by a distance; params: List design parameters, levels and the stored recipe size; program: The area program: every room/zone/site with its level and area, plus totals by kind and by name; project: Project solids/walls to a 2D outline region; recipe_set: Store the command list that generates this model (the design intent); regenerate: Rebuild the model from the stored recipe: geometry is cleared, parameters survive (optionally overridden), every expression is re-evaluated; render: Render a PNG image of the model so it can be inspected visually; restore: Replace the document with a previously saved snapshot; revolve: Revolve closed 2D profiles around the vertical axis through `axis_point` to make solids of revolution; rotate: Rotate entities CCW (degrees); scale: Scale entities about a center point; set_param: Set a design parameter; set_units: Change document units (does NOT rescale existing geometry); shell: Hollow solids into shells of the given wall thickness (in place), by eroding a copy and subtracting it; slice: Horizontal section: cut solids/walls at height z and produce 2D region(s) of the cut; smooth: Smooth solids in place: facet edges flatter than `angle` degrees are rounded into curvature-continuous patches (sharper edges are kept crisp), then the mesh is refined; snapshot: Save a named snapshot of the whole document (cheap insurance before risky boolean/transform sequences); snapshots: List saved snapshots of this document; solidify: Convert walls into plain solid entities (so you can boolean them with other solids); sweep: Sweep a closed profile along a 3D path to make a solid (tubes, ribbons, curved beams); update: Change non-geometric properties of entities: layer, tag, material; validate: Check the document for problems: degenerate entities, broken meshes, openings outside their walls, references to missing materials",
+    "description": "Run Modulor CAD commands against a document file (2D drafting + 3D modeling; exports DXF/SVG/GLB/STL/IFC; renders PNG). Commands are executed atomically in order; each is {\"op\": <name>, ...params}. Use {\"op\":\"help\",\"name\":<op>} to inspect any op. Available ops — add_arc: Add a circular arc, CCW from start_angle to end_angle (degrees from +X); add_box: Add an axis-aligned box solid; add_circle: Add a circle; add_cylinder: Add a cylinder (or cone, with radius_top) standing on its base; add_dim: Add an aligned linear dimension between two points; add_dim_angular: Angular dimension: measures the CCW angle at `center` from the ray toward p1 to the ray toward p2, drawn as an arc at `radius`; add_dim_radial: Radius dimension on a circle or arc: a leader at `angle` with the text 'R<value>'; add_ellipse: Add an ellipse; add_facade: Curtain-wall facade between two plan points: a mullion grid solid plus a glass pane solid; add_grid: Structural grid: labeled axis lines drawn in plan; add_hatch: Hatch the area of closed shapes with a line pattern (or a solid fill); add_implicit: Sculpt a solid from a math expression over x, y, z: the solid is where the expression is POSITIVE; add_layer: Create or update a layer; add_leader: Leader annotation: an arrow at the first point, a line through the given points, and text at the last point; add_level: Define a named building level (storey); add_line: Add a straight line segment; add_material: Create or update a material (used by 3D solids; exported to glTF/OBJ); add_opening: Cut a door or window into a wall; add_polyline: Add a polyline (open or closed); add_rect: Add an axis-aligned rectangle (a closed polyline), optionally rotated; add_roof: Generate a roof solid over a closed footprint: 'flat' slab, 'shed' single slope, or 'gable' double slope with a central ridge; add_room: Declare a room/zone/site: a named program area; add_sphere: Add a sphere; add_spline: Add a smooth curve through the given points (centripetal Catmull-Rom); add_stair: Straight stair flight as a solid; add_surface: Doubly-curved surface slab: z = f(x, y) over a rectangle, given thickness; add_text: Add a text label; add_torus: Add a torus lying in the XY plane (donut axis = +Z through `at`); add_wall: Add a wall along a centerline path; array: Repeat entities in a grid or around a center (polar); boolean_2d: 2D boolean between closed shapes; boolean_3d: 3D boolean between solids (walls are converted automatically); chamfer: Cut the corners of polylines with straight bevels at the given setback distance (in place); copy: Copy entities, translating each copy by `by` (repeated `count` times); define_block: Define a reusable block from existing entities; define_param: Declare a design parameter with a default value — sets it only if it does not exist yet; deform: Non-rigid deformation of solids (in place): twist about the vertical axis, taper along the height, or bend along x into an arc; delete: Delete entities; diff: Compare the current model against a saved snapshot: parameter changes, entity additions/removals/modifications, and metric deltas; doc_info: Summary of the document: units, layers, entity counts, bounding box; doc_new: Reset the document to an empty state; export: Export to a file; format from the extension; extrude: Extrude closed 2D shapes vertically into solids (one solid per selected entity); fillet: Round the corners of polylines with arcs of the given radius (in place); find: Spatial query: which entities are at/near a point, or inside a box? Results are sorted by distance; get: Full data of one entity, including geometry; help: Introspect the API: list all ops, or full parameter docs for one op; import_dxf: Import entities from a DXF file (ASCII, R12 through current); insert_block: Place an instance of a block: the block's base point lands on `at`, rotated and uniformly scaled; list: List entities (id, type, layer, tag and a one-line geometric summary); list_layers: List layers and their properties; loft: Skin a solid through a stack of closed profiles at increasing heights (straight/ruled between sections — add more sections for curvature, or run 'smooth' after); measure: Measure geometry: distance between two points, or length / area / volume / bbox of selected entities; mirror: Mirror entities across the line p1->p2 (solids: across the vertical plane through that line); move: Translate entities by a vector; offset: Offset closed shapes outward (+) or inward (-) by a distance; params: List design parameters, levels and the stored recipe size; program: The area program: every room/zone/site with its level and area, plus totals by kind and by name; project: Project solids/walls to a 2D outline region; recipe_set: Store the command list that generates this model (the design intent); regenerate: Rebuild the model from the stored recipe: geometry is cleared, parameters survive (optionally overridden), every expression is re-evaluated; render: Render a PNG image of the model so it can be inspected visually; restore: Replace the document with a previously saved snapshot; revolve: Revolve closed 2D profiles around the vertical axis through `axis_point` to make solids of revolution; rotate: Rotate entities CCW (degrees); scale: Scale entities about a center point; set_param: Set a design parameter; set_units: Change document units (does NOT rescale existing geometry); shell: Hollow solids into shells of the given wall thickness (in place), by eroding a copy and subtracting it; slice: Horizontal section: cut solids/walls at height z and produce 2D region(s) of the cut; smooth: Smooth solids in place: facet edges flatter than `angle` degrees are rounded into curvature-continuous patches (sharper edges are kept crisp), then the mesh is refined; snapshot: Save a named snapshot of the whole document (cheap insurance before risky boolean/transform sequences); snapshots: List saved snapshots of this document; solidify: Convert walls into plain solid entities (so you can boolean them with other solids); sweep: Sweep a closed profile along a 3D path to make a solid (tubes, ribbons, curved beams); update: Change non-geometric properties of entities: layer, tag, material; validate: Check the document for problems: degenerate entities, broken meshes, openings outside their walls, references to missing materials",
     "parameters": {
      "type": "object",
      "properties": {
@@ -475,6 +475,69 @@
   {
    "type": "function",
    "function": {
+    "name": "modulor_add_ellipse",
+    "description": "Add an ellipse. Closed shape: it can be extruded, hatched and used in 2D booleans like a circle. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "center": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "point [x, y] (number or expression string like 'bay*2')"
+      },
+      "rx": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "semi-axis along x before rotation (> 0) (number or expression string like 'bay*2')"
+      },
+      "ry": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "semi-axis along y before rotation (> 0) (number or expression string like 'bay*2')"
+      },
+      "rotation": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "degrees CCW (number or expression string like 'bay*2')"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "center",
+      "rx",
+      "ry"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
     "name": "modulor_add_facade",
     "description": "Curtain-wall facade between two plan points: a mullion grid solid plus a glass pane solid. Panel sizes come from cols/rows or from target spacing. [effects: doc]",
     "parameters": {
@@ -631,6 +694,60 @@
   {
    "type": "function",
    "function": {
+    "name": "modulor_add_hatch",
+    "description": "Hatch the area of closed shapes with a line pattern (or a solid fill). The boundary entities are kept; the hatch is its own entity and re-clips automatically when rendered. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "boundary": {
+       "description": "closed shapes: circle / ellipse / closed polyline / region / room / wall footprint"
+      },
+      "pattern": {
+       "type": "string",
+       "description": "parallel lines, two perpendicular passes, or a solid fill",
+       "enum": [
+        "lines",
+        "cross",
+        "solid"
+       ]
+      },
+      "spacing": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "distance between hatch lines (default: boundary size / 25) (number or expression string like 'bay*2')"
+      },
+      "angle": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "hatch line direction, degrees (number or expression string like 'bay*2')"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "boundary"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
     "name": "modulor_add_implicit",
     "description": "Sculpt a solid from a math expression over x, y, z: the solid is where the expression is POSITIVE. The native way to make organic and freeform geometry. Helpers: length(...), smin/smax(a,b,k) for smooth blends, clamp, mix, abs, min, max, trig. Example sphere: '500 - length(x, y, z)'. [effects: doc]",
     "parameters": {
@@ -711,6 +828,61 @@
      "required": [
       "doc",
       "name"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_add_leader",
+    "description": "Leader annotation: an arrow at the first point, a line through the given points, and text at the last point. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "points": {
+       "type": "array",
+       "items": {
+        "type": "array",
+        "items": {
+         "type": [
+          "number",
+          "string"
+         ]
+        },
+        "minItems": 2,
+        "maxItems": 2
+       },
+       "description": "arrow tip first, text end last (2+ points) (number or expression string like 'bay*2')"
+      },
+      "text": {
+       "type": "string",
+       "description": "the annotation text"
+      },
+      "height": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "text height (default: 250mm equivalent) (number or expression string like 'bay*2')"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "points",
+      "text"
      ]
     }
    }
@@ -1489,6 +1661,72 @@
   {
    "type": "function",
    "function": {
+    "name": "modulor_add_torus",
+    "description": "Add a torus lying in the XY plane (donut axis = +Z through `at`). [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "at": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 3,
+       "description": "center of the torus (number or expression string like 'bay*2')"
+      },
+      "radius": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "ring radius: center to tube center (number or expression string like 'bay*2')"
+      },
+      "tube_radius": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "tube radius (> 0, < radius) (number or expression string like 'bay*2')"
+      },
+      "segments": {
+       "type": [
+        "integer",
+        "string"
+       ],
+       "description": "0 = automatic (number or expression string like 'bay*2')"
+      },
+      "material": {
+       "type": "string",
+       "description": "material name (define with add_material)"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "radius",
+      "tube_radius"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
     "name": "modulor_add_wall",
     "description": "Add a wall along a centerline path. Walls render as double lines in plan and extrude to 3D automatically. Openings (doors/windows) are cut with add_opening. [effects: doc]",
     "parameters": {
@@ -1809,6 +2047,50 @@
       "doc",
       "select",
       "by"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_define_block",
+    "description": "Define a reusable block from existing entities. By default the source entities are replaced by one instance in place (geometry is unchanged); pass replace=false to keep them and only store the definition. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "select": {
+       "description": "entities to capture (grids cannot be blocked)"
+      },
+      "name": {
+       "type": "string",
+       "description": "block name (must be new)"
+      },
+      "base": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "local origin: insert_block 'at' lands here (number or expression string like 'bay*2')"
+      },
+      "replace": {
+       "type": "boolean",
+       "description": "swap the source entities for an instance"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "select",
+      "name"
      ]
     }
    }
@@ -2282,6 +2564,65 @@
      "required": [
       "doc",
       "path"
+     ]
+    }
+   }
+  },
+  {
+   "type": "function",
+   "function": {
+    "name": "modulor_insert_block",
+    "description": "Place an instance of a block: the block's base point lands on `at`, rotated and uniformly scaled. Use array/copy for repetition. [effects: doc]",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "name": {
+       "type": "string",
+       "description": "a defined block (see define_block)"
+      },
+      "at": {
+       "type": "array",
+       "items": {
+        "type": [
+         "number",
+         "string"
+        ]
+       },
+       "minItems": 2,
+       "maxItems": 2,
+       "description": "insertion point (number or expression string like 'bay*2')"
+      },
+      "rotation": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "degrees CCW (number or expression string like 'bay*2')"
+      },
+      "scale": {
+       "type": [
+        "number",
+        "string"
+       ],
+       "description": "uniform factor (> 0) (number or expression string like 'bay*2')"
+      },
+      "layer": {
+       "type": "string",
+       "description": "target layer (created on first use)"
+      },
+      "tag": {
+       "type": "string",
+       "description": "optional label for later selection"
+      },
+      "doc": {
+       "type": "string",
+       "description": "path to the .json document (created if missing)"
+      }
+     },
+     "required": [
+      "doc",
+      "name",
+      "at"
      ]
     }
    }

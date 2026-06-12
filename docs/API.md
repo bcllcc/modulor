@@ -1,6 +1,6 @@
 # Modulor op API
 
-71 ops · contract `modulor-ops/1` · generated from v1.0.0rc1 — do not edit by hand, run `python scripts/api_dump.py`.
+77 ops · contract `modulor-ops/1` · generated from v1.0.0rc2 — do not edit by hand, run `python scripts/api_dump.py`.
 
 `effects`: **doc** mutates the document · **files** writes files, document untouched · **none** pure query.
 
@@ -173,6 +173,26 @@ Radius dimension on a circle or arc: a leader at `angle` with the text 'R<value>
 {"op": "add_dim_radial", "of": "e4", "direction": 30}
 ```
 
+## add_ellipse
+
+*effects: doc*  
+Add an ellipse. Closed shape: it can be extruded, hatched and used in 2D booleans like a circle.
+
+| param | type | required | default | notes |
+|---|---|---|---|---|
+| `center` | point2 | yes |  | point [x, y] |
+| `rx` | number | yes |  | semi-axis along x before rotation (> 0) |
+| `ry` | number | yes |  | semi-axis along y before rotation (> 0) |
+| `rotation` | number |  | `0.0` | degrees CCW |
+| `layer` | string |  |  | target layer (created on first use) |
+| `tag` | string |  |  | optional label for later selection |
+
+**returns** `{created: [id]}`
+
+```json
+{"op": "add_ellipse", "center": [0, 0], "rx": 800, "ry": 450}
+```
+
 ## add_facade
 
 *effects: doc*  
@@ -220,6 +240,26 @@ Structural grid: labeled axis lines drawn in plan. Reference intersections anywh
 {"op": "add_grid", "x": {"start": 0, "count": 5, "spacing": "bay"}, "y": [0, 6000, 12000]}
 ```
 
+## add_hatch
+
+*effects: doc*  
+Hatch the area of closed shapes with a line pattern (or a solid fill). The boundary entities are kept; the hatch is its own entity and re-clips automatically when rendered.
+
+| param | type | required | default | notes |
+|---|---|---|---|---|
+| `boundary` | select | yes |  | closed shapes: circle / ellipse / closed polyline / region / room / wall footprint |
+| `pattern` | string |  | `"lines"` | parallel lines, two perpendicular passes, or a solid fill one of ['lines', 'cross', 'solid'] |
+| `spacing` | number |  |  | distance between hatch lines (default: boundary size / 25) |
+| `angle` | number |  | `45.0` | hatch line direction, degrees |
+| `layer` | string |  |  | target layer (created on first use) |
+| `tag` | string |  |  | optional label for later selection |
+
+**returns** `{created: [id], lines}`
+
+```json
+{"op": "add_hatch", "boundary": "e3", "pattern": "lines", "angle": 45}
+```
+
 ## add_implicit
 
 *effects: doc*  
@@ -256,6 +296,25 @@ Create or update a layer. Layers are also auto-created when first referenced by 
 
 ```json
 {"op": "add_layer", "name": "walls", "color": "#333333"}
+```
+
+## add_leader
+
+*effects: doc*  
+Leader annotation: an arrow at the first point, a line through the given points, and text at the last point.
+
+| param | type | required | default | notes |
+|---|---|---|---|---|
+| `points` | points | yes |  | arrow tip first, text end last (2+ points) |
+| `text` | string | yes |  | the annotation text |
+| `height` | number |  |  | text height (default: 250mm equivalent) |
+| `layer` | string |  |  | target layer (created on first use) |
+| `tag` | string |  |  | optional label for later selection |
+
+**returns** `{created: [id]}`
+
+```json
+{"op": "add_leader", "points": [[1200, 800], [1800, 1400]], "text": "waterproofing"}
 ```
 
 ## add_level
@@ -519,6 +578,27 @@ Add a text label.
 {"op": "add_text", "at": [200, 150], "text": "KITCHEN", "height": 200}
 ```
 
+## add_torus
+
+*effects: doc*  
+Add a torus lying in the XY plane (donut axis = +Z through `at`).
+
+| param | type | required | default | notes |
+|---|---|---|---|---|
+| `at` | point3 |  | `[0.0, 0.0, 0.0]` | center of the torus |
+| `radius` | number | yes |  | ring radius: center to tube center |
+| `tube_radius` | number | yes |  | tube radius (> 0, < radius) |
+| `segments` | integer |  | `0` | 0 = automatic |
+| `material` | string |  |  | material name (define with add_material) |
+| `layer` | string |  |  | target layer (created on first use) |
+| `tag` | string |  |  | optional label for later selection |
+
+**returns** `{created: [id], volume, bbox}`
+
+```json
+{"op": "add_torus", "at": [0, 0, 500], "radius": 400, "tube_radius": 80}
+```
+
 ## add_wall
 
 *effects: doc*  
@@ -635,6 +715,24 @@ Copy entities, translating each copy by `by` (repeated `count` times).
 
 ```json
 {"op": "copy", "select": "e5", "by": [3000, 0], "count": 3}
+```
+
+## define_block
+
+*effects: doc*  
+Define a reusable block from existing entities. By default the source entities are replaced by one instance in place (geometry is unchanged); pass replace=false to keep them and only store the definition.
+
+| param | type | required | default | notes |
+|---|---|---|---|---|
+| `select` | select | yes |  | entities to capture (grids cannot be blocked) |
+| `name` | string | yes |  | block name (must be new) |
+| `base` | point2 |  | `[0.0, 0.0]` | local origin: insert_block 'at' lands here |
+| `replace` | boolean |  | `true` | swap the source entities for an instance |
+
+**returns** `{created: [instance id] or [], block, count}`
+
+```json
+{"op": "define_block", "select": {"tags": ["window"]}, "name": "win-900", "base": [0, 0]}
 ```
 
 ## define_param
@@ -852,6 +950,26 @@ Import entities from a DXF file (ASCII, R12 through current). Supported: LINE, C
 
 ```json
 {"op": "import_dxf", "path": "site_plan.dxf"}
+```
+
+## insert_block
+
+*effects: doc*  
+Place an instance of a block: the block's base point lands on `at`, rotated and uniformly scaled. Use array/copy for repetition.
+
+| param | type | required | default | notes |
+|---|---|---|---|---|
+| `name` | string | yes |  | a defined block (see define_block) |
+| `at` | point2 | yes |  | insertion point |
+| `rotation` | number |  | `0.0` | degrees CCW |
+| `scale` | number |  | `1.0` | uniform factor (> 0) |
+| `layer` | string |  |  | target layer (created on first use) |
+| `tag` | string |  |  | optional label for later selection |
+
+**returns** `{created: [id]}`
+
+```json
+{"op": "insert_block", "name": "win-900", "at": [3200, 0], "rotation": 90}
 ```
 
 ## list

@@ -23,64 +23,139 @@ from . import font
 def display_list(doc, ids) -> list[dict]:
     out = []
     for eid in ids:
-        ent = doc.entities[eid]
-        layer_name = ent.get("layer", "0")
-        layer = doc.layers.get(layer_name, {})
-        if not layer.get("visible", True):
-            continue
-        color = layer.get("color", "#222222")
-        width = layer.get("line_width", 1.0)
-        base = {"layer": layer_name, "color": color, "width": width, "id": eid}
-        t = ent["type"]
-        if t == "line":
-            out.append({"kind": "stroke", "points": [ent["start"], ent["end"]],
-                        "closed": False, **base})
-        elif t == "polyline":
-            out.append({"kind": "stroke", "points": list(ent["points"]),
-                        "closed": bool(ent.get("closed")), **base})
-        elif t == "spline":
-            out.append({"kind": "stroke", "points": shapes.spline_points(ent),
-                        "closed": bool(ent.get("closed")), **base})
-        elif t == "circle":
-            out.append({"kind": "circle", "center": ent["center"],
-                        "r": ent["radius"], **base})
-        elif t == "arc":
-            out.append({"kind": "arc", "center": ent["center"], "r": ent["radius"],
-                        "a0": ent["start_angle"], "a1": ent["end_angle"], **base})
-        elif t == "region":
-            out.append({"kind": "fill", "contours": ent["contours"],
-                        "outline": color, **base})
-        elif t == "text":
-            out.append({"kind": "text", "at": ent["at"], "text": ent["text"],
-                        "height": ent.get("height", 1.0),
-                        "rotation": ent.get("rotation", 0.0),
-                        "anchor": "start", **base})
-        elif t == "dim":
-            out.extend(dim_primitives(doc, ent, base))
-        elif t == "dim_angular":
-            out.extend(dim_angular_primitives(doc, ent, base))
-        elif t == "dim_radial":
-            out.extend(dim_radial_primitives(doc, ent, base))
-        elif t == "wall":
-            cs = shapes.wall_footprint(doc, ent)
-            out.append({"kind": "fill", "contours": cs.to_polygons(),
-                        "outline": color, **base})
-            for sym in shapes.wall_opening_symbols(doc, ent):
-                w = max(0.4, width * 0.5)
-                if sym["kind"] == "line":
-                    out.append({"kind": "stroke", "points": sym["points"],
-                                "closed": False, **{**base, "width": w}})
-                else:
-                    out.append({"kind": "arc", "center": sym["center"],
-                                "r": sym["radius"], "a0": sym["start"],
-                                "a1": sym["end"], **{**base, "width": w}})
-        elif t == "grid":
-            out.extend(grid_primitives(ent, base))
-        elif t == "room":
-            out.extend(room_primitives(doc, ent, base))
-        elif t == "solid":
-            pass  # 3D bodies don't appear in 2D output
+        out.extend(ent_prims(doc, eid, doc.entities[eid]))
     return out
+
+
+def display_list_ents(doc, ents) -> list[dict]:
+    """Display list of detached entity records (e.g. block definitions)."""
+    out = []
+    for i, ent in enumerate(ents):
+        out.extend(ent_prims(doc, f"b{i}", ent))
+    return out
+
+
+def ent_prims(doc, eid, ent) -> list[dict]:
+    """Display primitives of one entity record (which may be a detached
+    copy produced by block-instance expansion)."""
+    layer_name = ent.get("layer", "0")
+    layer = doc.layers.get(layer_name, {})
+    if not layer.get("visible", True):
+        return []
+    color = layer.get("color", "#222222")
+    width = layer.get("line_width", 1.0)
+    base = {"layer": layer_name, "color": color, "width": width, "id": eid}
+    t = ent["type"]
+    out: list[dict] = []
+    if t == "line":
+        out.append({"kind": "stroke", "points": [ent["start"], ent["end"]],
+                    "closed": False, **base})
+    elif t == "polyline":
+        out.append({"kind": "stroke", "points": list(ent["points"]),
+                    "closed": bool(ent.get("closed")), **base})
+    elif t == "spline":
+        out.append({"kind": "stroke", "points": shapes.spline_points(ent),
+                    "closed": bool(ent.get("closed")), **base})
+    elif t == "circle":
+        out.append({"kind": "circle", "center": ent["center"],
+                    "r": ent["radius"], **base})
+    elif t == "ellipse":
+        out.append({"kind": "stroke",
+                    "points": g.ellipse_points(ent["center"], ent["rx"],
+                                               ent["ry"],
+                                               ent.get("rotation", 0.0)),
+                    "closed": True, **base})
+    elif t == "arc":
+        out.append({"kind": "arc", "center": ent["center"], "r": ent["radius"],
+                    "a0": ent["start_angle"], "a1": ent["end_angle"], **base})
+    elif t == "region":
+        out.append({"kind": "fill", "contours": ent["contours"],
+                    "outline": color, **base})
+    elif t == "hatch":
+        out.extend(hatch_primitives(ent, base))
+    elif t == "text":
+        out.append({"kind": "text", "at": ent["at"], "text": ent["text"],
+                    "height": ent.get("height", 1.0),
+                    "rotation": ent.get("rotation", 0.0),
+                    "anchor": "start", **base})
+    elif t == "leader":
+        out.extend(leader_primitives(ent, base))
+    elif t == "dim":
+        out.extend(dim_primitives(doc, ent, base))
+    elif t == "dim_angular":
+        out.extend(dim_angular_primitives(doc, ent, base))
+    elif t == "dim_radial":
+        out.extend(dim_radial_primitives(doc, ent, base))
+    elif t == "wall":
+        cs = shapes.wall_footprint(doc, ent)
+        out.append({"kind": "fill", "contours": cs.to_polygons(),
+                    "outline": color, **base})
+        for sym in shapes.wall_opening_symbols(doc, ent):
+            w = max(0.4, width * 0.5)
+            if sym["kind"] == "line":
+                out.append({"kind": "stroke", "points": sym["points"],
+                            "closed": False, **{**base, "width": w}})
+            else:
+                out.append({"kind": "arc", "center": sym["center"],
+                            "r": sym["radius"], "a0": sym["start"],
+                            "a1": sym["end"], **{**base, "width": w}})
+    elif t == "grid":
+        out.extend(grid_primitives(ent, base))
+    elif t == "room":
+        out.extend(room_primitives(doc, ent, base))
+    elif t == "instance":
+        for child in shapes.expand_instance(doc, ent):
+            out.extend(ent_prims(doc, eid, child))
+    elif t == "solid":
+        pass  # 3D bodies don't appear in 2D output
+    return out
+
+
+def hatch_primitives(ent, base) -> list[dict]:
+    thin = {**base, "width": max(0.35, base["width"] * 0.5)}
+    if ent.get("pattern") == "solid":
+        return [{"kind": "fill", "contours": ent["contours"],
+                 "outline": base["color"], **base}]
+    angles = [ent.get("angle", 45.0)]
+    if ent.get("pattern") == "cross":
+        angles.append(ent.get("angle", 45.0) + 90.0)
+    prims = []
+    for c in ent["contours"]:
+        prims.append({"kind": "stroke", "points": list(c), "closed": True,
+                      **thin})
+    for a in angles:
+        for seg in g.hatch_lines(ent["contours"], ent["spacing"], a):
+            prims.append({"kind": "stroke", "points": seg, "closed": False,
+                          **thin})
+    return prims
+
+
+def leader_primitives(ent, base) -> list[dict]:
+    pts = [list(p) for p in ent["points"]]
+    h = float(ent.get("height", 1.0))
+    prims = [{"kind": "stroke", "points": pts, "closed": False,
+              **{**base, "width": max(0.4, base["width"] * 0.5)}}]
+    # arrowhead: a small filled triangle pointing down the first segment
+    tip = np.asarray(pts[0], dtype=float)
+    d = g.unit(np.asarray(pts[1], dtype=float) - tip)
+    n = g.perp(d)
+    size = h * 0.8
+    a = tip + d * size
+    prims.append({"kind": "fill", "outline": base["color"], **base,
+                  "contours": [[[float(tip[0]), float(tip[1])],
+                                [float((a + n * size * 0.25)[0]),
+                                 float((a + n * size * 0.25)[1])],
+                                [float((a - n * size * 0.25)[0]),
+                                 float((a - n * size * 0.25)[1])]]]})
+    # text just past the last point, continuing the last segment direction
+    end = np.asarray(pts[-1], dtype=float)
+    d_end = g.unit(end - np.asarray(pts[-2], dtype=float))
+    at = end + d_end * h * 0.4
+    anchor = "start" if d_end[0] >= 0 else "end"
+    prims.append({"kind": "text", "at": [float(at[0]), float(at[1]) - h * 0.35],
+                  "text": ent["text"], "height": h, "rotation": 0.0,
+                  "anchor": anchor, **base})
+    return prims
 
 
 def grid_primitives(ent, base) -> list[dict]:

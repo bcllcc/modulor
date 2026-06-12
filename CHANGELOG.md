@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.0.0rc2 — 2026-06-12
+
+**The drafting/modeling baseline is complete** (RFC #1, accepted): six
+additive ops, 71 → 77. No breaking changes; every existing document and
+agent integration keeps working.
+
+- `add_ellipse`, `add_hatch` (lines/cross/solid, hole-aware, re-clips
+  on regenerate), `add_leader` (arrow + text annotation), `add_torus`
+- **blocks**: `define_block` + `insert_block` — reusable components
+  with position/rotation/uniform scale. Instances work everywhere via
+  expansion (render, measure, booleans, transforms, arrays) and export
+  to DXF as native BLOCKS/INSERT (round-trips through our importer).
+  Format: optional top-level `blocks` map + `instance` entity (schema
+  updated, additive)
+- `add_cone` was *not* added: `add_cylinder(radius_top=0)` already
+  covers cones/frustums
+- hardening found by the extended fuzz campaign: `segments` budgets on
+  cylinder/sphere/revolve/torus (adversarial values could hang the
+  kernel), `add_grid` label-type validation
+- lint: ruff (incl. flake8-bandit security rules) clean and enforced
+  in CI; OpenSSF Best Practices badge (passing, project 13175)
+
 ## 1.0.0rc1 — 2026-06-12
 
 **The op surface is frozen.** From this release, breaking changes to

@@ -7,3 +7,5 @@ build/
 dist/
 .playwright-mcp/
 *.snapshots/
+
+.pytest-basetemp/

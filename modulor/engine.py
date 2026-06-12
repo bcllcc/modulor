@@ -12,8 +12,8 @@ from .errors import CadError
 from .ops import REGISTRY, validate_params
 
 # importing these modules registers all ops
-from .ops import (arch, doc_ops, draw2d, export_ops, model3d,  # noqa: F401
-                  param_ops, query, transform)
+from .ops import (arch, blocks, doc_ops, draw2d, export_ops,  # noqa: F401
+                  model3d, param_ops, query, transform)
 
 # installed extensions register theirs (isolated: a broken plugin only
 # disables itself — see modulor.plugins.plugin_status)

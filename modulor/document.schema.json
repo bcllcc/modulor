@@ -80,6 +80,20 @@
       "type": "object",
       "propertyNames": {"pattern": "^e[0-9]+$"},
       "additionalProperties": {"$ref": "#/$defs/entity"}
+    },
+    "blocks": {
+      "type": "object",
+      "description": "reusable component definitions referenced by instance entities (added during the modulor/1 lifetime, optional)",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["base", "entities"],
+        "additionalProperties": false,
+        "properties": {
+          "base": {"$ref": "#/$defs/point2"},
+          "entities": {"type": "array", "items": {"$ref": "#/$defs/entity"},
+                       "minItems": 1}
+        }
+      }
     }
   },
   "$defs": {
@@ -109,11 +123,13 @@
       "oneOf": [
         {"$ref": "#/$defs/line"}, {"$ref": "#/$defs/polyline"},
         {"$ref": "#/$defs/spline"}, {"$ref": "#/$defs/circle"},
-        {"$ref": "#/$defs/arc"}, {"$ref": "#/$defs/region"},
+        {"$ref": "#/$defs/arc"}, {"$ref": "#/$defs/ellipse"},
+        {"$ref": "#/$defs/region"}, {"$ref": "#/$defs/hatch"},
         {"$ref": "#/$defs/text"}, {"$ref": "#/$defs/dim"},
         {"$ref": "#/$defs/dim_angular"}, {"$ref": "#/$defs/dim_radial"},
-        {"$ref": "#/$defs/wall"}, {"$ref": "#/$defs/grid"},
-        {"$ref": "#/$defs/room"}, {"$ref": "#/$defs/solid"}
+        {"$ref": "#/$defs/leader"}, {"$ref": "#/$defs/wall"},
+        {"$ref": "#/$defs/grid"}, {"$ref": "#/$defs/room"},
+        {"$ref": "#/$defs/solid"}, {"$ref": "#/$defs/instance"}
       ]
     },
     "line": {
@@ -176,6 +192,62 @@
         "end_angle": {"type": "number"}
       },
       "required": ["type", "center", "radius", "start_angle", "end_angle"],
+      "additionalProperties": false
+    },
+    "ellipse": {
+      "type": "object",
+      "properties": {
+        "type": {"const": "ellipse"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "center": {"$ref": "#/$defs/point2"},
+        "rx": {"type": "number", "exclusiveMinimum": 0},
+        "ry": {"type": "number", "exclusiveMinimum": 0},
+        "rotation": {"type": "number"}
+      },
+      "required": ["type", "center", "rx", "ry", "rotation"],
+      "additionalProperties": false
+    },
+    "hatch": {
+      "type": "object",
+      "description": "line/cross/solid fill clipped to the stored boundary contours (region contour conventions apply)",
+      "properties": {
+        "type": {"const": "hatch"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "contours": {"type": "array", "items": {"$ref": "#/$defs/contour"},
+                     "minItems": 1},
+        "pattern": {"enum": ["lines", "cross", "solid"]},
+        "spacing": {"type": "number", "exclusiveMinimum": 0},
+        "angle": {"type": "number"}
+      },
+      "required": ["type", "contours", "pattern", "spacing", "angle"],
+      "additionalProperties": false
+    },
+    "leader": {
+      "type": "object",
+      "description": "annotation: arrow at points[0], text past the last point",
+      "properties": {
+        "type": {"const": "leader"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "points": {"type": "array", "items": {"$ref": "#/$defs/point2"},
+                   "minItems": 2},
+        "text": {"type": "string"},
+        "height": {"type": "number", "exclusiveMinimum": 0}
+      },
+      "required": ["type", "points", "text", "height"],
+      "additionalProperties": false
+    },
+    "instance": {
+      "type": "object",
+      "description": "placement of a block definition: the block's base point lands on 'at', rotated CCW and uniformly scaled",
+      "properties": {
+        "type": {"const": "instance"},
+        "layer": {"type": "string"}, "tag": {"type": "string"},
+        "block": {"type": "string"},
+        "at": {"$ref": "#/$defs/point2"},
+        "rotation": {"type": "number"},
+        "scale": {"type": "number", "exclusiveMinimum": 0}
+      },
+      "required": ["type", "block", "at", "rotation", "scale"],
       "additionalProperties": false
     },
     "region": {

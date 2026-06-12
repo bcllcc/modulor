@@ -32,7 +32,7 @@ def modulor_run(doc, commands):
     return {"ok": True, "results": results}
 ```
 
-`coarse` 是单工具模式（推荐，提示词开销最小）；`fine` 是 71 个独立工具，
+`coarse` 是单工具模式（推荐，提示词开销最小）；`fine` 是 77 个独立工具，
 适合偏好扁平工具列表的运行时。
 
 ## 方式二：MCP（支持 MCP 的客户端）

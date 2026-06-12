@@ -131,10 +131,11 @@ def text_strokes(text: str, at, height: float, rotation: float = 0.0,
     a = math.radians(rotation)
     c, s = math.cos(a), math.sin(a)
     ox, oy = float(at[0]), float(at[1])
-    if anchor == "middle":
+    if anchor in ("middle", "end"):
         w = text_width(text, height)
-        ox -= w / 2 * c
-        oy -= w / 2 * s
+        k = 0.5 if anchor == "middle" else 1.0
+        ox -= w * k * c
+        oy -= w * k * s
     strokes = []
     for i, ch in enumerate(text):
         dx = i * ADVANCE * height

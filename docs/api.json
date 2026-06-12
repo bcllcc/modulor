@@ -24,7 +24,7 @@
   "unknown_param": "the op has no such parameter (hint suggests close matches)",
   "unknown_tool": "MCP: no tool with that name"
  },
- "op_count": 71,
+ "op_count": 77,
  "ops": {
   "add_arc": {
    "effects": "doc",
@@ -226,6 +226,34 @@
    },
    "returns": "{created: [id], value}"
   },
+  "add_ellipse": {
+   "effects": "doc",
+   "params": {
+    "center": {
+     "required": true,
+     "type": "point2"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "rotation": {
+     "default": 0.0,
+     "type": "number"
+    },
+    "rx": {
+     "required": true,
+     "type": "number"
+    },
+    "ry": {
+     "required": true,
+     "type": "number"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id]}"
+  },
   "add_facade": {
    "effects": "doc",
    "params": {
@@ -301,6 +329,38 @@
    },
    "returns": "{created: [id], x, y}"
   },
+  "add_hatch": {
+   "effects": "doc",
+   "params": {
+    "angle": {
+     "default": 45.0,
+     "type": "number"
+    },
+    "boundary": {
+     "required": true,
+     "type": "select"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "pattern": {
+     "default": "lines",
+     "enum": [
+      "lines",
+      "cross",
+      "solid"
+     ],
+     "type": "string"
+    },
+    "spacing": {
+     "type": "number"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id], lines}"
+  },
   "add_implicit": {
    "effects": "doc",
    "params": {
@@ -345,6 +405,29 @@
     }
    },
    "returns": "{layer, color, visible, line_width}"
+  },
+  "add_leader": {
+   "effects": "doc",
+   "params": {
+    "height": {
+     "type": "number"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "points": {
+     "required": true,
+     "type": "points"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "text": {
+     "required": true,
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id]}"
   },
   "add_level": {
    "effects": "doc",
@@ -723,6 +806,41 @@
    },
    "returns": "{created: [id]}"
   },
+  "add_torus": {
+   "effects": "doc",
+   "params": {
+    "at": {
+     "default": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "type": "point3"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "material": {
+     "type": "string"
+    },
+    "radius": {
+     "required": true,
+     "type": "number"
+    },
+    "segments": {
+     "default": 0,
+     "type": "integer"
+    },
+    "tag": {
+     "type": "string"
+    },
+    "tube_radius": {
+     "required": true,
+     "type": "number"
+    }
+   },
+   "returns": "{created: [id], volume, bbox}"
+  },
   "add_wall": {
    "effects": "doc",
    "params": {
@@ -900,6 +1018,31 @@
     }
    },
    "returns": "{created: [ids]}"
+  },
+  "define_block": {
+   "effects": "doc",
+   "params": {
+    "base": {
+     "default": [
+      0.0,
+      0.0
+     ],
+     "type": "point2"
+    },
+    "name": {
+     "required": true,
+     "type": "string"
+    },
+    "replace": {
+     "default": true,
+     "type": "boolean"
+    },
+    "select": {
+     "required": true,
+     "type": "select"
+    }
+   },
+   "returns": "{created: [instance id] or [], block, count}"
   },
   "define_param": {
    "effects": "doc",
@@ -1137,6 +1280,34 @@
     }
    },
    "returns": "{created: [ids], imported: {TYPE: n}, skipped: {TYPE: n}, layers, dxf_units?, warnings?}"
+  },
+  "insert_block": {
+   "effects": "doc",
+   "params": {
+    "at": {
+     "required": true,
+     "type": "point2"
+    },
+    "layer": {
+     "type": "string"
+    },
+    "name": {
+     "required": true,
+     "type": "string"
+    },
+    "rotation": {
+     "default": 0.0,
+     "type": "number"
+    },
+    "scale": {
+     "default": 1.0,
+     "type": "number"
+    },
+    "tag": {
+     "type": "string"
+    }
+   },
+   "returns": "{created: [id]}"
   },
   "list": {
    "effects": "none",
@@ -1668,5 +1839,5 @@
    "returns": "{valid, problems: [{id, code, message}]}"
   }
  },
- "version": "1.0.0rc1"
+ "version": "1.0.0rc2"
 }
