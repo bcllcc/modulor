@@ -543,9 +543,11 @@ def add_implicit(doc, p):
     try:
         lo = [float(v) for v in p["bounds"]["min"]]
         hi = [float(v) for v in p["bounds"]["max"]]
-        assert len(lo) == 3 and len(hi) == 3
-        assert all(math.isfinite(v) for v in lo + hi)
-    except (KeyError, TypeError, ValueError, AssertionError):
+        if len(lo) != 3 or len(hi) != 3:
+            raise ValueError("bounds need 3 components")
+        if not all(math.isfinite(v) for v in lo + hi):
+            raise ValueError("non-finite bounds")
+    except (KeyError, TypeError, ValueError):
         raise CadError("bad_param",
                        'bounds should be {"min": [x,y,z], "max": [x,y,z]} '
                        "with finite numbers")

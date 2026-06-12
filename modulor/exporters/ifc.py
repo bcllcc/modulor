@@ -30,7 +30,8 @@ _GUID_ALPHABET = ("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 def _guid(seed: str) -> str:
     """Deterministic 22-char IFC GlobalId from a seed string."""
-    n = int.from_bytes(hashlib.md5(seed.encode("utf-8")).digest()[:16], "big")
+    digest = hashlib.md5(seed.encode("utf-8"), usedforsecurity=False).digest()
+    n = int.from_bytes(digest[:16], "big")
     n &= (1 << 128) - 1
     out = []
     for _ in range(22):

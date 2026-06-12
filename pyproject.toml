@@ -40,7 +40,16 @@ include = ["modulor*"]
 [tool.setuptools.package-data]
 modulor = ["viewer/*.html", "document.schema.json"]
 
+[tool.ruff.lint]
+# defaults plus the flake8-bandit security rules
+extend-select = ["S"]
+
 [tool.ruff.lint.per-file-ignores]
 # the DXF writer mirrors the format's group-code pairs line by line;
 # the semicolon pairing is the readable form there
 "modulor/exporters/dxf.py" = ["E702"]
+# tests use assert by design (pytest); the fuzzer's randomness is not
+# cryptographic and must stay seedable for reproducibility
+"tests/**" = ["S101", "S110"]
+"extensions/*/tests/**" = ["S101"]
+"scripts/fuzz.py" = ["S311"]

@@ -381,8 +381,9 @@ def add_surface(doc, p):
     try:
         lo = [float(v) for v in p["bounds"]["min"][:2]]
         hi = [float(v) for v in p["bounds"]["max"][:2]]
-        assert all(math.isfinite(v) for v in lo + hi)
-    except (KeyError, TypeError, ValueError, AssertionError):
+        if not all(math.isfinite(v) for v in lo + hi):
+            raise ValueError("non-finite bounds")
+    except (KeyError, TypeError, ValueError):
         raise CadError("bad_param", 'bounds should be {"min": [x,y], '
                                     '"max": [x,y]} with finite numbers')
     if hi[0] <= lo[0] or hi[1] <= lo[1]:

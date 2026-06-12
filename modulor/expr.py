@@ -118,7 +118,8 @@ def compile_field(expr: str):
     env = {"__builtins__": {}, **FUNCS, **NAMES}
 
     def f(x: float, y: float, z: float) -> float:
-        return eval(code, env, {"x": x, "y": y, "z": z})
+        # safe: AST-whitelisted by _check above, empty __builtins__
+        return eval(code, env, {"x": x, "y": y, "z": z})  # noqa: S307
 
     return f
 
@@ -138,7 +139,8 @@ def eval_expr(expr: str, extra_names: dict | None = None,
     env = {"__builtins__": {}, **FUNCS, **NAMES,
            **extra_names, **extra_funcs}
     try:
-        v = eval(code, env, {})
+        # safe: AST-whitelisted by _check above, empty __builtins__
+        v = eval(code, env, {})  # noqa: S307
     except (ValueError, ZeroDivisionError, OverflowError, TypeError) as e:
         raise CadError("bad_expr", f"expression {expr!r} failed: {e}")
     if isinstance(v, bool) or not isinstance(v, (int, float)):
