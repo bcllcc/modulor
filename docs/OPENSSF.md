@@ -6,8 +6,8 @@ the GitHub account that owns the repo, click *Get Your Badge Now*, enter
 answers below map our reality to the **passing** criteria; everything is
 already in place, so this is a paste-through exercise (~20 minutes).
 
-When granted, add to README:
-`[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/<ID>/badge)](https://www.bestpractices.dev/projects/<ID>)`
+**Granted 2026-06-12** — project 13175, passing level, all criteria Met:
+https://www.bestpractices.dev/projects/13175 (badge linked in README).
 
 ## Basics
 

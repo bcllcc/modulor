@@ -1,6 +1,6 @@
 # Modulor
 
-[![PyPI](https://img.shields.io/pypi/v/modulor)](https://pypi.org/project/modulor/) [![CI](https://github.com/bcllcc/modulor/actions/workflows/ci.yml/badge.svg)](https://github.com/bcllcc/modulor/actions/workflows/ci.yml) [![Python](https://img.shields.io/pypi/pyversions/modulor)](https://pypi.org/project/modulor/) [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/modulor)](https://pypi.org/project/modulor/) [![CI](https://github.com/bcllcc/modulor/actions/workflows/ci.yml/badge.svg)](https://github.com/bcllcc/modulor/actions/workflows/ci.yml) [![Python](https://img.shields.io/pypi/pyversions/modulor)](https://pypi.org/project/modulor/) [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13175/badge)](https://www.bestpractices.dev/projects/13175)
 
 **Agent-native 的二维绘图 + 三维建模内核。没有 GUI，没有鼠标——JSON 进，几何出。**
 
