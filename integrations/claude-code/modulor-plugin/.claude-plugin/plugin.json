@@ -1,7 +1,7 @@
 {
   "name": "modulor",
   "description": "Agent-native CAD: draw floor plans, model buildings and parts, export DXF/SVG/STL/GLB and semantic IFC BIM. Bundles the Modulor MCP server (cad_run / cad_ops / cad_render) and a usage skill. Requires: pip install modulor",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "author": {
     "name": "Modulor contributors",
     "url": "https://github.com/bcllcc/modulor"
@@ -9,5 +9,12 @@
   "homepage": "https://github.com/bcllcc/modulor",
   "repository": "https://github.com/bcllcc/modulor",
   "license": "MIT",
-  "keywords": ["cad", "geometry", "dxf", "ifc", "3d-modeling", "drafting"]
+  "keywords": [
+    "cad",
+    "geometry",
+    "dxf",
+    "ifc",
+    "3d-modeling",
+    "drafting"
+  ]
 }

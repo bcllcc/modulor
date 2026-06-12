@@ -96,8 +96,14 @@ RESOURCE_OPS = {  # named-resource and lifecycle ops with their own shapes
 }
 
 
-def test_result_categories_cover_everything():
+def _core_registry():
     from modulor.ops import REGISTRY
+    return {n: e for n, e in REGISTRY.items()
+            if e.get("origin", "core") == "core"}
+
+
+def test_result_categories_cover_everything():
+    REGISTRY = _core_registry()
     cats = [CREATORS, MUTATORS, DUAL, QUERIES, FILE_WRITERS, RESOURCE_OPS]
     union = set().union(*cats)
     assert union == set(REGISTRY), (
@@ -109,7 +115,7 @@ def test_result_categories_cover_everything():
 
 
 def test_result_declarations_match_category():
-    from modulor.ops import REGISTRY
+    REGISTRY = _core_registry()
     for name in CREATORS:
         ret = REGISTRY[name]["returns"]
         assert "created" in ret, f"{name}: creators must declare 'created'"
@@ -155,7 +161,7 @@ SELECTOR_PARAM_NAMES = {"select", "a", "b", "wall", "profile",
 
 
 def test_selector_param_names_locked():
-    from modulor.ops import REGISTRY
+    REGISTRY = _core_registry()
     seen = set()
     for name, e in REGISTRY.items():
         for pname, sp in e["params"].items():
@@ -198,7 +204,7 @@ def test_json_schema_matches_runtime():
 
 def test_every_param_documented():
     """100% parameter documentation — the API is self-describing."""
-    from modulor.ops import REGISTRY
+    REGISTRY = _core_registry()
     missing = [f"{n}.{p}" for n, e in REGISTRY.items()
                for p, sp in e["params"].items() if not sp["doc"].strip()]
     assert not missing, f"params without docs: {missing}"
@@ -207,7 +213,7 @@ def test_every_param_documented():
 def test_every_op_declares_returns():
     """Self-describing goes for outputs too: every op declares its
     result shape."""
-    from modulor.ops import REGISTRY
+    REGISTRY = _core_registry()
     missing = [n for n, e in REGISTRY.items() if not e["returns"].strip()]
     assert not missing, f"ops without a returns declaration: {missing}"
 

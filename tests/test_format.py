@@ -156,13 +156,15 @@ def test_readme_op_count_is_current():
     """The headline number in README must match the registry — public
     claims are part of the contract too."""
     from modulor.ops import REGISTRY
+    core = [n for n, e in REGISTRY.items()
+            if e.get("origin", "core") == "core"]
     with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as f:
         readme = f.read()
     m = re.search(r"(\d+) 个自描述操作", readme)
     assert m, "README lost its op-count headline"
-    assert int(m.group(1)) == len(REGISTRY), (
-        f"README says {m.group(1)} ops but the registry has "
-        f"{len(REGISTRY)} — update README.md")
+    assert int(m.group(1)) == len(core), (
+        f"README says {m.group(1)} ops but the core registry has "
+        f"{len(core)} — update README.md")
     # no other stale op-counts hiding anywhere
     for stale in re.findall(r"(\d+) 个(?:自描述 )?op\b", readme):
-        assert int(stale) == len(REGISTRY)
+        assert int(stale) == len(core)

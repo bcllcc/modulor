@@ -23,6 +23,8 @@ from modulor.ops import REGISTRY  # noqa: E402
 def contract() -> dict:
     ops = {}
     for name, e in sorted(REGISTRY.items()):
+        if e.get("origin", "core") != "core":
+            continue
         params = {}
         for pname, sp in e["params"].items():
             d = {"type": sp["type"]}

@@ -193,7 +193,7 @@ def op(name: str, doc: str, params: dict, example: dict | None = None,
     def deco(fn):
         REGISTRY[name] = {"fn": fn, "doc": doc, "params": params,
                           "example": example, "returns": returns,
-                          "effects": effects}
+                          "effects": effects, "origin": "core"}
         return fn
     return deco
 
@@ -217,6 +217,8 @@ def describe_op(name: str) -> dict:
         params[k] = d
     out = {"op": name, "doc": e["doc"], "effects": e["effects"],
            "params": params}
+    if e.get("origin", "core") != "core":
+        out["origin"] = e["origin"]
     if e["returns"]:
         out["returns"] = e["returns"]
     if e["example"]:
@@ -225,8 +227,13 @@ def describe_op(name: str) -> dict:
 
 
 def list_ops() -> list[dict]:
-    return [{"op": n, "doc": e["doc"], "effects": e["effects"]}
-            for n, e in sorted(REGISTRY.items())]
+    out = []
+    for n, e in sorted(REGISTRY.items()):
+        row = {"op": n, "doc": e["doc"], "effects": e["effects"]}
+        if e.get("origin", "core") != "core":
+            row["origin"] = e["origin"]
+        out.append(row)
+    return out
 
 
 # JSON-schema fragments for MCP tool definitions. Numeric fields accept

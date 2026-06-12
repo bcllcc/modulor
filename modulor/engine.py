@@ -15,6 +15,12 @@ from .ops import REGISTRY, validate_params
 from .ops import (arch, doc_ops, draw2d, export_ops, model3d,  # noqa: F401
                   param_ops, query, transform)
 
+# installed extensions register theirs (isolated: a broken plugin only
+# disables itself — see modulor.plugins.plugin_status)
+from .plugins import load_plugins as _load_plugins
+
+_load_plugins()
+
 
 class BatchError(CadError):
     def __init__(self, index: int, opname: str, err: CadError, results: list):

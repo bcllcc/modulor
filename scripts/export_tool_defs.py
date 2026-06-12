@@ -21,9 +21,14 @@ from modulor import __version__  # noqa: E402
 from modulor.ops import REGISTRY, json_schema  # noqa: E402
 
 
+def _core_items():
+    return [(n, e) for n, e in sorted(REGISTRY.items())
+            if e.get("origin", "core") == "core"]
+
+
 def coarse_tool() -> dict:
     catalog = "; ".join(f"{n}: {e['doc'].split('.')[0]}"
-                        for n, e in sorted(REGISTRY.items()))
+                        for n, e in _core_items())
     return {
         "type": "function",
         "function": {
@@ -57,7 +62,7 @@ def coarse_tool() -> dict:
 
 def fine_tools() -> list[dict]:
     tools = []
-    for name, e in sorted(REGISTRY.items()):
+    for name, e in _core_items():
         schema = json_schema(name)
         schema["properties"]["doc"] = {
             "type": "string",
